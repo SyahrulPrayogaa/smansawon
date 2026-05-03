@@ -12,6 +12,11 @@
     <title>{{ $title }}</title>
     <meta name="description" content="{{ $description }}">
 
+    {{-- Favicon / Tab Icon --}}
+    <link rel="icon" type="image/png" href="{{ asset('img/logo.png') }}">
+    <link rel="shortcut icon" type="image/png" href="{{ asset('img/logo.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('img/logo.png') }}">
+
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     <link rel="preconnect" href="https://fonts.googleapis.com">

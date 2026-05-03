@@ -15,9 +15,11 @@
 
 <header class="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur">
     <nav class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-        <a href="/" class="flex items-center gap-3">
-            <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-900 text-lg font-bold text-white">
-                S
+        <a href="{{ route('home') }}" class="flex items-center gap-3">
+            <div
+                class="flex h-12 w-12 items-center justify-center rounded-xl bg-white p-1 shadow-sm ring-1 ring-slate-200">
+                <img src="{{ asset('img/logo.png') }}" alt="Logo SMA Negeri 1 Wonosari"
+                    class="h-full w-full object-contain">
             </div>
 
             <div>

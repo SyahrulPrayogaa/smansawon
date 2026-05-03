@@ -2,9 +2,9 @@
     <div class="mx-auto grid max-w-7xl gap-10 px-6 py-14 md:grid-cols-4">
         <div class="md:col-span-2">
             <div class="flex items-center gap-3">
-                <div
-                    class="flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-400 text-lg font-bold text-blue-950">
-                    S
+                <div class="flex h-12 w-12 items-center justify-center rounded-xl bg-white p-1 shadow-sm">
+                    <img src="{{ asset('img/logo.png') }}" alt="Logo SMA Negeri 1 Wonosari"
+                        class="h-full w-full object-contain">
                 </div>
                 <div>
                     <p class="font-extrabold">SMA Negeri 1 Wonosari</p>
