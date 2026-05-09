@@ -38,7 +38,7 @@
             <a href="#program" class="hover:text-blue-800">Program</a>
             <a href="#prestasi" class="hover:text-blue-800">Prestasi</a>
             <a href="{{ route('posts.index') }}" class="hover:text-blue-800">Berita</a>
-            <a href="#agenda" class="hover:text-blue-800">Agenda</a>
+            <a href="{{ route('agendas.index') }}" class="hover:text-blue-800">Agenda</a>
             <a href="#kontak" class="hover:text-blue-800">Kontak</a>
         </div>
 

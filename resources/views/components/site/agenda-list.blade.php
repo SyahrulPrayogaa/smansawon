@@ -36,4 +36,10 @@
             </div>
         @endforelse
     </div>
+    <div class="mt-6">
+        <a href="{{ route('agendas.index') }}"
+            class="inline-flex rounded-full bg-blue-900 px-5 py-2.5 text-sm font-bold text-white hover:bg-blue-800">
+            Lihat Semua Agenda
+        </a>
+    </div>
 </aside>
