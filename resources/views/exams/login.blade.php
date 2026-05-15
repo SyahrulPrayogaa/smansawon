@@ -28,7 +28,7 @@
                 </div>
 
                 <button
-                    class="w-full rounded-2xl bg-blue-950 px-5 py-3.5 text-sm font-extrabold text-white transition hover:bg-blue-900">
+                    class="w-full rounded-2xl bg-blue-950 px-5 py-3.5 text-sm font-extrabold text-white cursor-pointer transition hover:bg-blue-900">
                     Cek Data Siswa
                 </button>
             </form>

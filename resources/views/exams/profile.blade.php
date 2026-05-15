@@ -11,38 +11,68 @@
                 </p>
             </div>
 
+            {{-- Pesan sukses, misalnya setelah ujian selesai --}}
             @if (session('success'))
                 <div class="mt-6 rounded-2xl bg-green-50 p-4 text-sm font-semibold leading-6 text-green-700">
                     {{ session('success') }}
                 </div>
             @endif
 
+            {{-- Status attempt terakhir --}}
+            @if ($attempt && in_array($attempt->status, ['submitted', 'expired']))
+                <div class="mt-6 rounded-2xl bg-green-50 p-4 text-sm font-semibold leading-6 text-green-700">
+                    <p>
+                        Status ujian:
+                        <span class="font-extrabold">
+                            {{ $attempt->status === 'submitted' ? 'Sudah Dikumpulkan' : 'Waktu Habis' }}
+                        </span>
+                    </p>
+
+                    @if ($attempt->exam)
+                        <p class="mt-1">
+                            Ujian: {{ $attempt->exam->title }}
+                        </p>
+                    @endif
+
+                    @if (!is_null($attempt->score))
+                        <p class="mt-1">
+                            Nilai sementara: {{ $attempt->score }}
+                        </p>
+                    @endif
+                </div>
+            @endif
+
+            {{-- Data siswa --}}
             <div class="mt-8 rounded-3xl bg-slate-50 p-5 ring-1 ring-slate-200">
                 <div class="space-y-4">
                     <div>
                         <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Nama</p>
-                        <p class="mt-1 font-extrabold text-blue-950">{{ $student['name'] }}</p>
+                        <p class="mt-1 font-extrabold text-blue-950">{{ $student->name }}</p>
                     </div>
                     <div>
                         <p class="text-xs font-bold uppercase tracking-wide text-slate-500">NISN</p>
-                        <p class="mt-1 font-extrabold text-blue-950">{{ $student['nisn'] }}</p>
+                        <p class="mt-1 font-extrabold text-blue-950">{{ $student->nisn }}</p>
                     </div>
                     <div>
                         <p class="text-xs font-bold uppercase tracking-wide text-slate-500">Kelas</p>
-                        <p class="mt-1 font-extrabold text-blue-950">{{ $student['class'] }}</p>
+                        <p class="mt-1 font-extrabold text-blue-950">{{ $student->classRoom?->name ?? '-' }}</p>
                     </div>
                 </div>
             </div>
 
+            {{-- Instruksi Token --}}
             <div class="mt-6 rounded-3xl bg-blue-50 p-5 ring-1 ring-blue-100">
-                <p class="text-sm font-bold text-blue-950">{{ $exam['title'] }}</p>
-                <p class="mt-1 text-sm text-slate-600">Mata pelajaran: {{ $exam['subject'] }}</p>
-                <p class="mt-1 text-sm text-slate-600">Durasi: {{ $exam['duration_minutes'] }} menit</p>
+                <p class="text-sm font-bold text-blue-950">
+                    Masukkan Token Ujian
+                </p>
+                <p class="mt-1 text-sm leading-6 text-slate-600">
+                    Token diberikan oleh pengawas atau guru. Token hanya berlaku untuk kelas kamu dan jadwal ujian yang
+                    sedang aktif.
+                </p>
             </div>
 
             <form method="POST" action="{{ route('student.exam.check-token') }}" class="mt-6 space-y-5">
                 @csrf
-
                 <div>
                     <label for="token" class="text-sm font-bold text-blue-950">
                         Token Ujian
@@ -54,9 +84,8 @@
                         <p class="mt-2 text-sm font-semibold text-red-600">{{ $message }}</p>
                     @enderror
                 </div>
-
                 <button
-                    class="w-full rounded-2xl bg-yellow-400 px-5 py-3.5 text-sm font-extrabold text-blue-950 transition hover:bg-yellow-300">
+                    class="w-full rounded-2xl bg-yellow-400 px-5 py-3.5 text-sm font-extrabold text-blue-950 cursor-pointer transition hover:bg-yellow-300">
                     Mulai Ujian
                 </button>
             </form>

@@ -7,10 +7,10 @@
             <div class="mx-auto flex max-w-3xl items-center justify-between gap-3 px-4 py-3">
                 <div class="min-w-0">
                     <p class="truncate text-sm font-extrabold text-blue-950">
-                        {{ $exam['title'] }}
+                        {{ $exam->title }}
                     </p>
                     <p class="truncate text-xs text-slate-500">
-                        {{ $student['name'] }} • Soal {{ $number }} dari {{ $totalQuestions }}
+                        {{ $student->name }} • Soal {{ $number }} dari {{ $totalQuestions }}
                     </p>
                 </div>
 
@@ -27,7 +27,7 @@
                     <div>
                         <p class="text-sm font-bold text-yellow-600">Soal {{ $number }}</p>
                         <h1 class="mt-1 text-xl font-extrabold text-blue-950">
-                            {{ $exam['subject'] }}
+                            {{ $exam->subject }}
                         </h1>
                     </div>
 
@@ -38,25 +38,33 @@
                 </div>
 
                 <div class="rounded-3xl bg-slate-50 p-5 leading-8 text-slate-800 ring-1 ring-slate-200">
-                    {{ $question['question'] }}
+                    {!! $question->question_text !!}
                 </div>
 
                 <div class="mt-5 space-y-3">
-                    @foreach ($question['options'] as $optionKey => $optionText)
+                    @foreach ($question->options as $option)
                         <label
                             class="flex cursor-pointer gap-3 rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-blue-300 hover:bg-blue-50">
-                            <input type="radio" name="answer" value="{{ $optionKey }}"
-                                @checked($selectedAnswer === $optionKey)
+                            <input type="radio" name="question_option_id" value="{{ $option->id }}"
+                                @checked($selectedAnswer?->question_option_id === $option->id)
                                 class="mt-1 h-4 w-4 shrink-0 border-slate-300 text-blue-900 focus:ring-blue-900">
+
                             <span
                                 class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-extrabold text-blue-950">
-                                {{ $optionKey }}
+                                {{ $option->option_label }}
                             </span>
+
                             <span class="leading-7 text-slate-700">
-                                {{ $optionText }}
+                                {!! $option->option_text !!}
                             </span>
                         </label>
                     @endforeach
+
+                    @error('question_option_id')
+                        <p class="text-sm font-semibold text-red-600">
+                            {{ $message }}
+                        </p>
+                    @enderror
                 </div>
             </section>
 
@@ -84,20 +92,20 @@
             <div class="mx-auto flex max-w-3xl gap-3">
                 @if ($number > 1)
                     <button type="submit" name="action" value="previous"
-                        class="flex-1 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-extrabold text-blue-950">
+                        class="flex-1 rounded-2xl border border-slate-200 px-4 py-3 text-sm font-extrabold text-blue-950 cursor-pointer transition hover:bg-slate-100">
                         Sebelumnya
                     </button>
                 @endif
 
                 @if ($number < $totalQuestions)
                     <button type="submit" name="action" value="next"
-                        class="flex-[1.4] rounded-2xl bg-blue-950 px-4 py-3 text-sm font-extrabold text-white">
+                        class="flex-[1.4] rounded-2xl bg-blue-950 px-4 py-3 text-sm font-extrabold text-white cursor-pointer transition hover:bg-blue-900">
                         Simpan & Lanjut
                     </button>
                 @else
                     <button type="submit" name="action" value="finish"
                         onclick="return confirm('Yakin ingin mengumpulkan ujian sekarang?')"
-                        class="flex-[1.4] rounded-2xl bg-yellow-400 px-4 py-3 text-sm font-extrabold text-blue-950">
+                        class="flex-[1.4] rounded-2xl bg-yellow-400 px-4 py-3 text-sm font-extrabold text-blue-950 cursor-pointer transition hover:bg-yellow-300">
                         Kumpulkan
                     </button>
                 @endif

@@ -7,6 +7,13 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
+use App\Models\ExamAnswer;
+use App\Models\ExamAttempt;
+use App\Models\ExamClassToken;
+use App\Models\Question;
+use App\Models\QuestionOption;
+use App\Models\Student;
+
 class ExamController extends Controller
 {
     public function login(): View
@@ -17,24 +24,26 @@ class ExamController extends Controller
     public function checkNisn(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'nisn' => ['required', 'string', 'min:8', 'max:20'],
+            'nisn' => ['required', 'string', 'max:20'],
         ]);
 
-        // Tahap awal: data siswa masih dummy.
-        // Nanti bagian ini diganti query ke tabel students berdasarkan NISN.
-        $students = $this->dummyStudents();
-        $student = collect($students)->firstWhere('nisn', $validated['nisn']);
+        $student = Student::query()
+            ->with('classRoom')
+            ->where('nisn', $validated['nisn'])
+            ->where('is_active', true)
+            ->first();
 
         if (! $student) {
             return back()
                 ->withInput()
                 ->withErrors([
-                    'nisn' => 'NISN tidak ditemukan. Periksa kembali NISN kamu.',
+                    'nisn' => 'NISN tidak ditemukan atau siswa tidak aktif.',
                 ]);
         }
 
         session([
-            'exam_student' => $student,
+            'exam_student_id' => $student->id,
+            'exam_attempt_id' => null,
         ]);
 
         return redirect()->route('student.exam.profile');
@@ -42,47 +51,94 @@ class ExamController extends Controller
 
     public function profile(): View|RedirectResponse
     {
-        $student = session('exam_student');
+        $student = $this->currentStudent();
 
         if (! $student) {
             return redirect()->route('student.exam.login');
         }
 
+        $attempt = $this->currentAttempt();
+
         return view('exams.profile', [
             'student' => $student,
-            'exam' => $this->dummyExam(),
+            'attempt' => $attempt,
         ]);
     }
 
     public function checkToken(Request $request): RedirectResponse
     {
-        $student = session('exam_student');
+        $student = $this->currentStudent();
 
         if (! $student) {
             return redirect()->route('student.exam.login');
         }
 
         $validated = $request->validate([
-            'token' => ['required', 'string', 'max:30'],
+            'token' => ['required', 'string', 'max:50'],
         ]);
 
-        $exam = $this->dummyExam();
+        $token = ExamClassToken::query()
+            ->with('exam')
+            ->where('class_room_id', $student->class_room_id)
+            ->where('token', strtoupper(trim($validated['token'])))
+            ->where('is_active', true)
+            ->whereHas('exam', function ($query) {
+                $query->where('is_active', true);
+            })
+            ->first();
 
-        // Token dibuat seragam untuk satu kelas.
-        // Tahap database nanti: token diambil dari tabel exam_sessions/class_exam_tokens.
-        if (strtoupper($validated['token']) !== $exam['token']) {
+        if (! $token) {
             return back()
                 ->withInput()
                 ->withErrors([
-                    'token' => 'Token ujian tidak sesuai. Silakan periksa kembali token dari pengawas.',
+                    'token' => 'Token tidak valid untuk kelas kamu.',
                 ]);
         }
 
+        if (! $this->isTokenCurrentlyValid($token)) {
+            return back()
+                ->withInput()
+                ->withErrors([
+                    'token' => 'Token ujian belum aktif atau sudah melewati batas waktu.',
+                ]);
+        }
+
+        $existingAttempt = ExamAttempt::query()
+            ->where('exam_id', $token->exam_id)
+            ->where('student_id', $student->id)
+            ->first();
+
+        if ($existingAttempt && $existingAttempt->status === 'submitted') {
+            return back()
+                ->withErrors([
+                    'token' => 'Kamu sudah mengumpulkan ujian ini.',
+                ]);
+        }
+
+        if ($existingAttempt && $existingAttempt->status === 'expired') {
+            return back()
+                ->withErrors([
+                    'token' => 'Waktu pengerjaan ujian ini sudah habis.',
+                ]);
+        }
+
+        $attempt = $existingAttempt ?: ExamAttempt::create([
+            'exam_id' => $token->exam_id,
+            'student_id' => $student->id,
+            'exam_class_token_id' => $token->id,
+            'started_at' => now(),
+            'status' => 'in_progress',
+        ]);
+
+        if (! $attempt->started_at) {
+            $attempt->update([
+                'started_at' => now(),
+                'status' => 'in_progress',
+            ]);
+        }
+
         session([
-            'exam_started_at' => now()->timestamp,
-            'exam_duration_seconds' => $exam['duration_minutes'] * 60,
-            'exam_answers' => session('exam_answers', []),
-            'exam_is_running' => true,
+            'exam_attempt_id' => $attempt->id,
         ]);
 
         return redirect()->route('student.exam.question', 1);
@@ -90,81 +146,164 @@ class ExamController extends Controller
 
     public function question(int $number): View|RedirectResponse
     {
-        $student = session('exam_student');
+        $student = $this->currentStudent();
+        $attempt = $this->currentAttempt();
 
         if (! $student) {
             return redirect()->route('student.exam.login');
         }
 
-        if (! session('exam_is_running')) {
+        if (! $attempt) {
             return redirect()->route('student.exam.profile');
         }
 
-        if ($this->remainingSeconds() <= 0) {
-            return redirect()->route('student.exam.question', $number)
-                ->with('time_up', true);
+        if ($attempt->status !== 'in_progress') {
+            return redirect()
+                ->route('student.exam.profile')
+                ->with('success', 'Ujian sudah selesai.');
         }
 
-        $questions = $this->dummyQuestions();
-        $totalQuestions = count($questions);
+        if ($this->remainingSeconds($attempt) <= 0) {
+            $this->expireAttempt($attempt);
+
+            return redirect()
+                ->route('student.exam.profile')
+                ->with('success', 'Waktu ujian sudah habis. Jawaban yang tersimpan telah dikumpulkan.');
+        }
+
+        $questions = Question::query()
+            ->with('options')
+            ->where('exam_id', $attempt->exam_id)
+            ->where('is_active', true)
+            ->orderBy('order_number')
+            ->orderBy('id')
+            ->get();
+
+        if ($questions->isEmpty()) {
+            return redirect()
+                ->route('student.exam.profile')
+                ->withErrors([
+                    'token' => 'Soal ujian belum tersedia.',
+                ]);
+        }
+
+        $totalQuestions = $questions->count();
 
         abort_if($number < 1 || $number > $totalQuestions, 404);
 
         $question = $questions[$number - 1];
-        $answers = session('exam_answers', []);
-        $selectedAnswer = $answers[$question['id']] ?? null;
+
+        $selectedAnswer = ExamAnswer::query()
+            ->where('exam_attempt_id', $attempt->id)
+            ->where('question_id', $question->id)
+            ->first();
+
+        $answeredQuestionIds = ExamAnswer::query()
+            ->where('exam_attempt_id', $attempt->id)
+            ->pluck('question_id')
+            ->toArray();
+
+        $answeredNumbers = $questions
+            ->values()
+            ->filter(fn($item) => in_array($item->id, $answeredQuestionIds))
+            ->map(fn($item, $index) => $questions->search(fn($q) => $q->id === $item->id) + 1)
+            ->values()
+            ->toArray();
 
         return view('exams.question', [
             'student' => $student,
-            'exam' => $this->dummyExam(),
+            'attempt' => $attempt,
+            'exam' => $attempt->exam,
             'question' => $question,
             'number' => $number,
             'totalQuestions' => $totalQuestions,
             'selectedAnswer' => $selectedAnswer,
-            'remainingSeconds' => $this->remainingSeconds(),
-            'answeredNumbers' => $this->answeredNumbers($questions, $answers),
+            'remainingSeconds' => $this->remainingSeconds($attempt),
+            'answeredNumbers' => $answeredNumbers,
         ]);
     }
 
     public function saveAnswer(Request $request, int $number): RedirectResponse
     {
-        $student = session('exam_student');
+        // dd($request->all());
+        $student = $this->currentStudent();
+        $attempt = $this->currentAttempt();
 
         if (! $student) {
             return redirect()->route('student.exam.login');
         }
 
-        if (! session('exam_is_running')) {
+        if (! $attempt) {
             return redirect()->route('student.exam.profile');
         }
 
-        if ($this->remainingSeconds() <= 0) {
-            return $this->finish($request);
+        if ($attempt->status !== 'in_progress') {
+            return redirect()->route('student.exam.profile');
         }
 
-        $questions = $this->dummyQuestions();
-        $totalQuestions = count($questions);
+        if ($this->remainingSeconds($attempt) <= 0) {
+            $this->expireAttempt($attempt);
+
+            return redirect()
+                ->route('student.exam.profile')
+                ->with('success', 'Waktu ujian sudah habis. Jawaban yang tersimpan telah dikumpulkan.');
+        }
+
+        $questions = Question::query()
+            ->where('exam_id', $attempt->exam_id)
+            ->where('is_active', true)
+            ->orderBy('order_number')
+            ->orderBy('id')
+            ->get();
+
+        $totalQuestions = $questions->count();
 
         abort_if($number < 1 || $number > $totalQuestions, 404);
 
         $question = $questions[$number - 1];
 
         $validated = $request->validate([
-            'answer' => ['nullable', 'string', 'in:A,B,C,D,E'],
+            'question_option_id' => ['nullable', 'integer', 'exists:question_options,id'],
             'action' => ['required', 'string', 'in:previous,next,finish'],
         ]);
 
-        $answers = session('exam_answers', []);
+        if (! empty($validated['question_option_id'])) {
+            $selectedOption = QuestionOption::query()
+                ->where('id', $validated['question_option_id'])
+                ->where('question_id', $question->id)
+                ->first();
 
-        // Inilah inti autosave per soal.
-        // Nanti bagian ini diganti create/update ke tabel exam_answers.
-        if (! empty($validated['answer'])) {
-            $answers[$question['id']] = $validated['answer'];
-            session(['exam_answers' => $answers]);
+            if (! $selectedOption) {
+                return back()
+                    ->withErrors([
+                        'question_option_id' => 'Pilihan jawaban tidak valid.',
+                    ]);
+            }
+
+            $isCorrect = $selectedOption->is_correct;
+            $score = $isCorrect ? $question->score : 0;
+
+            ExamAnswer::updateOrCreate(
+                [
+                    'exam_attempt_id' => $attempt->id,
+                    'question_id' => $question->id,
+                ],
+                [
+                    'question_option_id' => $selectedOption->id,
+                    'answer_text' => null,
+                    'is_correct' => $isCorrect,
+                    'score' => $score,
+                    'answered_at' => now(),
+                ]
+            );
         }
 
         if ($validated['action'] === 'finish') {
-            return $this->finish($request);
+            $this->submitAttempt($attempt);
+
+            return redirect()
+                ->route('student.exam.profile')
+                ->with('success', 'Jawaban ujian berhasil dikumpulkan.');
         }
 
         if ($validated['action'] === 'previous') {
@@ -176,108 +315,111 @@ class ExamController extends Controller
 
     public function finish(Request $request): RedirectResponse
     {
-        // Tahap awal: jawaban masih tersimpan di session.
-        // Tahap database nanti: simpan status attempt = submitted.
-        session([
-            'exam_is_running' => false,
-            'exam_submitted_at' => now()->timestamp,
-        ]);
+        $attempt = $this->currentAttempt();
+
+        if (! $attempt) {
+            return redirect()->route('student.exam.login');
+        }
+
+        $this->submitAttempt($attempt);
 
         return redirect()
             ->route('student.exam.profile')
             ->with('success', 'Jawaban ujian berhasil dikumpulkan.');
     }
 
-    private function remainingSeconds(): int
+    private function currentStudent(): ?Student
     {
-        $startedAt = session('exam_started_at');
-        $duration = session('exam_duration_seconds');
+        $studentId = session('exam_student_id');
 
-        if (! $startedAt || ! $duration) {
+        if (! $studentId) {
+            return null;
+        }
+
+        return Student::query()
+            ->with('classRoom')
+            ->find($studentId);
+    }
+
+    private function currentAttempt(): ?ExamAttempt
+    {
+        $attemptId = session('exam_attempt_id');
+
+        if (! $attemptId) {
+            return null;
+        }
+
+        return ExamAttempt::query()
+            ->with(['exam', 'student.classRoom', 'token'])
+            ->find($attemptId);
+    }
+
+    private function remainingSeconds(ExamAttempt $attempt): int
+    {
+        if (! $attempt->started_at) {
             return 0;
         }
 
-        $elapsed = now()->timestamp - $startedAt;
+        $durationSeconds = $attempt->exam->duration_minutes * 60;
+        $endTime = $attempt->started_at->copy()->addSeconds($durationSeconds);
 
-        return max(0, $duration - $elapsed);
+        return max(0, now()->diffInSeconds($endTime, false));
     }
 
-    private function answeredNumbers(array $questions, array $answers): array
+    private function submitAttempt(ExamAttempt $attempt): void
     {
-        $answeredNumbers = [];
-
-        foreach ($questions as $index => $question) {
-            if (array_key_exists($question['id'], $answers)) {
-                $answeredNumbers[] = $index + 1;
-            }
+        if ($attempt->status !== 'in_progress') {
+            return;
         }
 
-        return $answeredNumbers;
+        $score = ExamAnswer::query()
+            ->where('exam_attempt_id', $attempt->id)
+            ->sum('score');
+
+        $attempt->update([
+            'status' => 'submitted',
+            'submitted_at' => now(),
+            'score' => $score,
+        ]);
     }
 
-    private function dummyStudents(): array
+    private function expireAttempt(ExamAttempt $attempt): void
     {
-        return [
-            [
-                'nisn' => '1234567890',
-                'name' => 'Budi Santoso',
-                'class' => 'XI IPA 1',
-            ],
-            [
-                'nisn' => '0987654321',
-                'name' => 'Siti Aminah',
-                'class' => 'XI IPA 1',
-            ],
-        ];
+        if ($attempt->status !== 'in_progress') {
+            return;
+        }
+
+        $score = ExamAnswer::query()
+            ->where('exam_attempt_id', $attempt->id)
+            ->sum('score');
+
+        $attempt->update([
+            'status' => 'expired',
+            'submitted_at' => now(),
+            'score' => $score,
+        ]);
     }
 
-    private function dummyExam(): array
+    private function isTokenCurrentlyValid(ExamClassToken $token): bool
     {
-        return [
-            'title' => 'Ujian Matematika',
-            'subject' => 'Matematika',
-            'class' => 'XI IPA 1',
-            'duration_minutes' => 60,
-            'token' => 'MATHXIIPA1',
-        ];
-    }
+        $now = now();
 
-    private function dummyQuestions(): array
-    {
-        return [
-            [
-                'id' => 1,
-                'question' => 'Hasil dari 12 × 8 adalah ...',
-                'options' => [
-                    'A' => '86',
-                    'B' => '94',
-                    'C' => '96',
-                    'D' => '108',
-                    'E' => '112',
-                ],
-            ],
-            [
-                'id' => 2,
-                'question' => 'Jika x + 5 = 12, maka nilai x adalah ...',
-                'options' => [
-                    'A' => '5',
-                    'B' => '6',
-                    'C' => '7',
-                    'D' => '8',
-                    'E' => '9',
-                ],
-            ],
-            [
-                'id' => 3,
-                'question' => 'Bangun datar yang memiliki empat sisi sama panjang adalah ...',
-                'options' => [
-                    'A' => 'Segitiga',
-                    'B' => 'Persegi',
-                    'C' => 'Lingkaran',
-                    'D' => 'Trapesium',
-                    'E' => 'Jajar genjang',
-                ],
-            ],
-        ];
+        if ($token->starts_at && $now->lt($token->starts_at)) {
+            return false;
+        }
+
+        if ($token->ends_at && $now->gt($token->ends_at)) {
+            return false;
+        }
+
+        if ($token->exam->starts_at && $now->lt($token->exam->starts_at)) {
+            return false;
+        }
+
+        if ($token->exam->ends_at && $now->gt($token->exam->ends_at)) {
+            return false;
+        }
+
+        return true;
     }
 }
