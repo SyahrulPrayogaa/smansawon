@@ -22,6 +22,19 @@
         </header>
 
         <main class="mx-auto max-w-3xl px-4 py-5 pb-28">
+            @if (session('success'))
+                <div
+                    class="mb-5 rounded-2xl bg-green-50 p-4 text-sm font-semibold text-green-700 ring-1 ring-green-100">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @error('submit')
+                <div class="mb-5 rounded-2xl bg-red-50 p-4 text-sm font-semibold text-red-700 ring-1 ring-red-100">
+                    {{ $message }}
+                </div>
+            @enderror
+
             <section class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:p-7">
                 <div class="mb-5 flex items-center justify-between gap-3">
                     <div>
@@ -103,11 +116,18 @@
                         Simpan & Lanjut
                     </button>
                 @else
-                    <button type="submit" name="action" value="finish"
-                        onclick="return confirm('Yakin ingin mengumpulkan ujian sekarang?')"
-                        class="flex-[1.4] rounded-2xl bg-yellow-400 px-4 py-3 text-sm font-extrabold text-blue-950 cursor-pointer transition hover:bg-yellow-300">
-                        Kumpulkan
+                    <button type="submit" name="action" value="save"
+                        class="flex-[1.2] rounded-2xl bg-blue-950 px-4 py-3 text-sm font-extrabold text-white cursor-pointer transition hover:bg-blue-900">
+                        Simpan Jawaban
                     </button>
+
+                    @if ($allQuestionsAnswered)
+                        <button type="submit" name="action" value="finish"
+                            onclick="return confirm('Yakin ingin mengumpulkan ujian sekarang? Setelah dikumpulkan, jawaban tidak bisa diubah lagi.')"
+                            class="flex-[1.2] rounded-2xl bg-yellow-400 px-4 py-3 text-sm font-extrabold text-blue-950 cursor-pointer transition hover:bg-yellow-500">
+                            Kumpulkan
+                        </button>
+                    @endif
                 @endif
             </div>
         </div>

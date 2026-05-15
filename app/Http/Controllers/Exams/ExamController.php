@@ -210,6 +210,10 @@ class ExamController extends Controller
             ->values()
             ->toArray();
 
+        $answeredCount = count($answeredQuestionIds);
+        $unansweredCount = $totalQuestions - $answeredCount;
+        $allQuestionsAnswered = $unansweredCount === 0;
+
         return view('exams.question', [
             'student' => $student,
             'attempt' => $attempt,
@@ -220,6 +224,9 @@ class ExamController extends Controller
             'selectedAnswer' => $selectedAnswer,
             'remainingSeconds' => $this->remainingSeconds($attempt),
             'answeredNumbers' => $answeredNumbers,
+            'answeredCount' => $answeredCount,
+            'unansweredCount' => $unansweredCount,
+            'allQuestionsAnswered' => $allQuestionsAnswered,
         ]);
     }
 
@@ -264,7 +271,7 @@ class ExamController extends Controller
 
         $validated = $request->validate([
             'question_option_id' => ['nullable', 'integer', 'exists:question_options,id'],
-            'action' => ['required', 'string', 'in:previous,next,finish'],
+            'action' => ['required', 'string', 'in:previous,next,save,finish'],
         ]);
 
         if (! empty($validated['question_option_id'])) {
@@ -299,11 +306,29 @@ class ExamController extends Controller
         }
 
         if ($validated['action'] === 'finish') {
+            $answeredCount = ExamAnswer::query()
+                ->where('exam_attempt_id', $attempt->id)
+                ->count();
+
+            if ($answeredCount < $totalQuestions) {
+                return redirect()
+                    ->route('student.exam.question', $number)
+                    ->withErrors([
+                        'submit' => 'Masih ada soal yang belum dijawab. Lengkapi semua jawaban sebelum mengumpulkan ujian.',
+                    ]);
+            }
+
             $this->submitAttempt($attempt);
 
             return redirect()
                 ->route('student.exam.profile')
                 ->with('success', 'Jawaban ujian berhasil dikumpulkan.');
+        }
+
+        if ($validated['action'] === 'save') {
+            return redirect()
+                ->route('student.exam.question', $number)
+                ->with('success', 'Jawaban berhasil disimpan.');
         }
 
         if ($validated['action'] === 'previous') {
