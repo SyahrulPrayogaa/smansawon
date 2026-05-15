@@ -21,6 +21,20 @@ class ExamController extends Controller
         return view('exams.login');
     }
 
+    public function logout(Request $request): RedirectResponse
+    {
+        $request->session()->forget([
+            'exam_student_id',
+            'exam_attempt_id',
+        ]);
+
+        $request->session()->regenerateToken();
+
+        return redirect()
+            ->route('student.exam.login')
+            ->with('success', 'Kamu sudah keluar dari halaman ujian.');
+    }
+
     public function checkNisn(Request $request): RedirectResponse
     {
         $validated = $request->validate([

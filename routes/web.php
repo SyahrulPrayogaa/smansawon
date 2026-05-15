@@ -28,4 +28,6 @@ Route::prefix('ujian')->name('student.exam.')->group(function () {
     Route::post('/soal/{number}', [ExamController::class, 'saveAnswer'])->name('save-answer');
 
     Route::post('/selesai', [ExamController::class, 'finish'])->name('finish');
+
+    Route::post('/keluar', [ExamController::class, 'logout'])->name('logout');
 });

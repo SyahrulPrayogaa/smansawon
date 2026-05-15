@@ -12,6 +12,12 @@
                 </p>
             </div>
 
+            @if (session('success'))
+                <div class="mt-6 rounded-2xl bg-green-50 p-4 text-sm font-semibold leading-6 text-green-700">
+                    {{ session('success') }}
+                </div>
+            @endif
+
             <form method="POST" action="{{ route('student.exam.check-nisn') }}" class="mt-8 space-y-5">
                 @csrf
 

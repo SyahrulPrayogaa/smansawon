@@ -40,6 +40,15 @@
                         </p>
                     @endif
                 </div>
+
+                <form method="POST" action="{{ route('student.exam.logout') }}" class="mt-4">
+                    @csrf
+
+                    <button type="submit"
+                        class="w-full rounded-2xl bg-slate-900 px-5 py-3.5 text-sm font-extrabold text-white cursor-pointer transition hover:bg-slate-800">
+                        Keluar dari Halaman Ujian
+                    </button>
+                </form>
             @endif
 
             {{-- Data siswa --}}
@@ -66,7 +75,7 @@
                     Masukkan Token Ujian
                 </p>
                 <p class="mt-1 text-sm leading-6 text-slate-600">
-                    Token diberikan oleh pengawas atau guru. Token hanya berlaku untuk kelas kamu dan jadwal ujian yang
+                    Token diberikan oleh pengawas ujian. Token hanya berlaku untuk kelas kamu dan jadwal ujian yang
                     sedang aktif.
                 </p>
             </div>
