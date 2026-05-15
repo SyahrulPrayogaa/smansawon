@@ -23,6 +23,7 @@ class QuestionResource extends Resource
 
     protected static ?string $navigationLabel = 'Bank Soal';
 
+    protected static bool $shouldRegisterNavigation = false;
     // protected static ?string $navigationGroup = 'Manajemen Ujian';
 
     protected static ?int $navigationSort = 4;

@@ -16,26 +16,30 @@ class ExamsTable
         return $table
             ->columns([
                 TextColumn::make('title')
-                    ->label('Judul')
+                    ->label('Nama Paket Soal')
                     ->searchable()
                     ->sortable(),
 
                 TextColumn::make('subject')
-                    ->label('Mapel')
-                    ->searchable(),
+                    ->label('Mata Pelajaran')
+                    ->searchable()
+                    ->sortable(),
+
+                TextColumn::make('classTokens.classRoom.name')
+                    ->label('Kelas')
+                    ->badge()
+                    ->separator(',')
+                    ->placeholder('Belum ada kelas'),
+
+                TextColumn::make('questions_count')
+                    ->label('Jumlah Soal')
+                    ->counts('questions')
+                    ->sortable(),
 
                 TextColumn::make('duration_minutes')
                     ->label('Durasi')
                     ->suffix(' menit')
                     ->sortable(),
-
-                TextColumn::make('starts_at')
-                    ->label('Mulai')
-                    ->dateTime('d M Y H:i'),
-
-                TextColumn::make('ends_at')
-                    ->label('Selesai')
-                    ->dateTime('d M Y H:i'),
 
                 IconColumn::make('is_active')
                     ->label('Aktif')
@@ -53,12 +57,15 @@ class ExamsTable
             ->filters([
                 //
             ])
+
             ->recordActions([
-                EditAction::make(),
+                EditAction::make()
+                    ->label('Kelola Soal'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->label('Hapus Terpilih'),
                 ]),
             ]);
     }

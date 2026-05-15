@@ -7,6 +7,7 @@ use App\Filament\Resources\Exams\Pages\EditExam;
 use App\Filament\Resources\Exams\Pages\ListExams;
 use App\Filament\Resources\Exams\Schemas\ExamForm;
 use App\Filament\Resources\Exams\Tables\ExamsTable;
+use App\Filament\Resources\Exams\RelationManagers;
 use App\Models\Exam;
 use BackedEnum;
 use Filament\Resources\Resource;
@@ -16,11 +17,11 @@ use Filament\Tables\Table;
 
 class ExamResource extends Resource
 {
-    protected static ?string $modelLabel = 'Ujian';
+    protected static ?string $modelLabel = 'Paket Soal';
 
-    protected static ?string $pluralModelLabel = 'Ujian';
+    protected static ?string $pluralModelLabel = 'Bank Soal';
 
-    protected static ?string $navigationLabel = 'Ujian';
+    protected static ?string $navigationLabel = 'Bank Soal';
 
     // protected static ?string $navigationGroup = 'Manajemen Ujian';
 
@@ -28,7 +29,7 @@ class ExamResource extends Resource
 
     protected static ?string $model = Exam::class;
 
-    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-document-text';
+    protected static string|\BackedEnum|null $navigationIcon = 'heroicon-o-book-open';
     // protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?string $recordTitleAttribute = 'title';
@@ -46,7 +47,7 @@ class ExamResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\QuestionsRelationManager::class,
         ];
     }
 
@@ -56,6 +57,7 @@ class ExamResource extends Resource
             'index' => ListExams::route('/'),
             'create' => CreateExam::route('/create'),
             'edit' => EditExam::route('/{record}/edit'),
+
         ];
     }
 }

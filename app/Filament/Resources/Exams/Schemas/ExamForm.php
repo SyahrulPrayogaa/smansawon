@@ -16,12 +16,14 @@ class ExamForm
         return $schema
             ->components([
                 TextInput::make('title')
-                    ->label('Judul Ujian')
+                    ->label('Nama Paket Soal / Ujian')
+                    ->placeholder('Contoh: Ujian Matematika Kelas XI')
                     ->required()
                     ->maxLength(255),
 
                 TextInput::make('subject')
                     ->label('Mata Pelajaran')
+                    ->placeholder('Contoh: Matematika')
                     ->required()
                     ->maxLength(255),
 
@@ -30,16 +32,17 @@ class ExamForm
                     ->columnSpanFull(),
 
                 TextInput::make('duration_minutes')
-                    ->label('Durasi Menit')
+                    ->label('Durasi Pengerjaan')
+                    ->suffix('menit')
                     ->numeric()
                     ->required()
                     ->default(60),
 
-                DateTimePicker::make('starts_at')
-                    ->label('Mulai'),
+                // DateTimePicker::make('starts_at')
+                //     ->label('Mulai Aktif'),
 
-                DateTimePicker::make('ends_at')
-                    ->label('Selesai'),
+                // DateTimePicker::make('ends_at')
+                //     ->label('Berakhir'),
 
                 Toggle::make('is_active')
                     ->label('Aktif')
