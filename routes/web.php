@@ -17,5 +17,15 @@ Route::get('/berita/{post:slug}', [PostController::class, 'show'])->name('posts.
 
 Route::get('/agenda', [AgendaController::class, 'index'])->name('agendas.index');
 
-Route::get('/siswa/ujian', [ExamController::class, 'show'])->name('student.exam.show');
-Route::post('/siswa/ujian', [ExamController::class, 'submit'])->name('student.exam.submit');
+Route::prefix('ujian')->name('student.exam.')->group(function () {
+    Route::get('/', [ExamController::class, 'login'])->name('login');
+    Route::post('/cek-nisn', [ExamController::class, 'checkNisn'])->name('check-nisn');
+
+    Route::get('/profil', [ExamController::class, 'profile'])->name('profile');
+    Route::post('/cek-token', [ExamController::class, 'checkToken'])->name('check-token');
+
+    Route::get('/soal/{number}', [ExamController::class, 'question'])->name('question');
+    Route::post('/soal/{number}', [ExamController::class, 'saveAnswer'])->name('save-answer');
+
+    Route::post('/selesai', [ExamController::class, 'finish'])->name('finish');
+});
