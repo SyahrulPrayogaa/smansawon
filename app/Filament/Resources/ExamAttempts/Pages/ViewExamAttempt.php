@@ -10,10 +10,20 @@ class ViewExamAttempt extends ViewRecord
 {
     protected static string $resource = ExamAttemptResource::class;
 
-    protected function getHeaderActions(): array
+    protected string $view = 'filament.resources.exam-results.pages.view-exam-results';
+
+    public function getTitle(): string
     {
-        return [
-            EditAction::make(),
-        ];
+        return 'Detail Hasil Ujian';
+    }
+
+    public function getBreadcrumb(): string
+    {
+        return 'Detail Hasil Ujian';
+    }
+
+    public function getRecordTitle(): string
+    {
+        return $this->record->student?->name ?? 'Peserta Ujian';
     }
 }

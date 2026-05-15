@@ -4,7 +4,6 @@ namespace App\Filament\Resources\ExamAttempts\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
-use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
@@ -62,8 +61,8 @@ class ExamAttemptsTable
                 //
             ])
             ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
+                ViewAction::make()->label('Lihat Jawaban'),
+                // EditAction::make(),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

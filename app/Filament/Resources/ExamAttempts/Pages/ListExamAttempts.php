@@ -16,4 +16,9 @@ class ListExamAttempts extends ListRecords
             // CreateAction::make(),
         ];
     }
+
+    public function getBreadcrumb(): string
+    {
+        return 'Daftar Hasil Ujian';
+    }
 }
