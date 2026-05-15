@@ -10,6 +10,7 @@ use App\Filament\Resources\Exams\Tables\ExamsTable;
 use App\Filament\Resources\Exams\RelationManagers;
 use App\Models\Exam;
 use BackedEnum;
+use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -23,7 +24,7 @@ class ExamResource extends Resource
 
     protected static ?string $navigationLabel = 'Bank Soal';
 
-    // protected static ?string $navigationGroup = 'Manajemen Ujian';
+    protected static string|UnitEnum|null $navigationGroup = 'Manajemen Ujian';
 
     protected static ?int $navigationSort = 3;
 

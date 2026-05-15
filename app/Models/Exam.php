@@ -14,6 +14,11 @@ class Exam extends Model
         'ends_at' => 'datetime',
     ];
 
+    public function schoolSubject()
+    {
+        return $this->belongsTo(SchoolSubject::class);
+    }
+
     public function questions()
     {
         return $this->hasMany(Question::class)->orderBy('order_number');

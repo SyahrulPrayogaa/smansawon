@@ -9,6 +9,7 @@ use App\Filament\Resources\ExamClassTokens\Schemas\ExamClassTokenForm;
 use App\Filament\Resources\ExamClassTokens\Tables\ExamClassTokensTable;
 use App\Models\ExamClassToken;
 use BackedEnum;
+use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -22,7 +23,7 @@ class ExamClassTokenResource extends Resource
 
     protected static ?string $navigationLabel = 'Token Ujian';
 
-    // protected static ?string $navigationGroup = 'Manajemen Ujian';
+    protected static string|UnitEnum|null $navigationGroup = 'Manajemen Ujian';
 
     protected static ?int $navigationSort = 5;
 

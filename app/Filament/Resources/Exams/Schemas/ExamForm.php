@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Exams\Schemas;
 
 use Filament\Forms\Components\DateTimePicker;
 use Filament\Forms\Components\RichEditor;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
@@ -21,11 +22,12 @@ class ExamForm
                     ->required()
                     ->maxLength(255),
 
-                TextInput::make('subject')
+                Select::make('school_subject_id')
                     ->label('Mata Pelajaran')
-                    ->placeholder('Contoh: Matematika')
-                    ->required()
-                    ->maxLength(255),
+                    ->relationship('schoolSubject', 'name')
+                    ->searchable()
+                    ->preload()
+                    ->required(),
 
                 RichEditor::make('description')
                     ->label('Deskripsi')

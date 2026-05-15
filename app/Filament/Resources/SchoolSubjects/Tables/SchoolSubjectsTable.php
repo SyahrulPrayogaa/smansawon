@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Filament\Resources\Exams\Tables;
+namespace App\Filament\Resources\SchoolSubjects\Tables;
 
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -9,59 +9,39 @@ use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 
-class ExamsTable
+class SchoolSubjectsTable
 {
     public static function configure(Table $table): Table
     {
         return $table
             ->columns([
-                TextColumn::make('title')
-                    ->label('Nama Paket Soal')
+                TextColumn::make('name')
+                    ->label('Nama Mata Pelajaran')
                     ->searchable()
                     ->sortable(),
 
-                TextColumn::make('schoolSubject.name')
-                    ->label('Mata Pelajaran')
+                TextColumn::make('code')
+                    ->label('Kode')
                     ->searchable()
                     ->sortable()
                     ->placeholder('-'),
-
-                TextColumn::make('classTokens.classRoom.name')
-                    ->label('Kelas')
-                    ->badge()
-                    ->separator(',')
-                    ->placeholder('Belum ada kelas'),
-
-                TextColumn::make('questions_count')
-                    ->label('Jumlah Soal')
-                    ->counts('questions')
-                    ->sortable(),
-
-                TextColumn::make('duration_minutes')
-                    ->label('Durasi')
-                    ->suffix(' menit')
-                    ->sortable(),
 
                 IconColumn::make('is_active')
                     ->label('Aktif')
                     ->boolean(),
 
                 TextColumn::make('created_at')
-                    ->dateTime()
-                    ->sortable()
-                    ->toggleable(isToggledHiddenByDefault: true),
-                TextColumn::make('updated_at')
-                    ->dateTime()
+                    ->label('Dibuat')
+                    ->dateTime('d M Y H:i')
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 //
             ])
-
             ->recordActions([
                 EditAction::make()
-                    ->label('Kelola Soal'),
+                    ->label('Edit'),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

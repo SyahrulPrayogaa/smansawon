@@ -11,6 +11,7 @@ use App\Filament\Resources\ExamAttempts\Schemas\ExamAttemptInfolist;
 use App\Filament\Resources\ExamAttempts\Tables\ExamAttemptsTable;
 use App\Models\ExamAttempt;
 use BackedEnum;
+use UnitEnum;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
@@ -24,7 +25,7 @@ class ExamAttemptResource extends Resource
 
     protected static ?string $navigationLabel = 'Rekap Hasil Ujian';
 
-    // protected static ?string $navigationGroup = 'Manajemen Ujian';
+    protected static string|UnitEnum|null $navigationGroup = 'Manajemen Ujian';
 
     protected static ?int $navigationSort = 6;
 
