@@ -36,7 +36,7 @@
 
                     @if (!is_null($attempt->score))
                         <p class="mt-1">
-                            Nilai sementara: {{ $attempt->score }}
+                            Nilai: {{ $attempt->score }}
                         </p>
                     @endif
                 </div>

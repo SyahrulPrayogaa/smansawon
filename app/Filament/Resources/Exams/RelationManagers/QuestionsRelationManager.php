@@ -16,6 +16,8 @@ use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\FileUpload;
+
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
@@ -40,6 +42,17 @@ class QuestionsRelationManager extends RelationManager
                 RichEditor::make('question_text')
                     ->label('Teks Soal')
                     ->required()
+                    ->columnSpanFull(),
+
+                FileUpload::make('image_path')
+                    ->label('Gambar Soal')
+                    ->image()
+                    ->disk('public')
+                    ->directory('exam-questions')
+                    ->visibility('public')
+                    ->imagePreviewHeight('200')
+                    ->maxSize(2048)
+                    ->helperText('Opsional. Gunakan jika soal membutuhkan gambar, grafik, tabel, atau ilustrasi.')
                     ->columnSpanFull(),
 
                 Select::make('question_type')
@@ -105,6 +118,11 @@ class QuestionsRelationManager extends RelationManager
                     ->html()
                     ->limit(80)
                     ->searchable(),
+
+                IconColumn::make('image_path')
+                    ->label('Gambar')
+                    ->boolean()
+                    ->getStateUsing(fn($record) => filled($record->image_path)),
 
                 TextColumn::make('options_count')
                     ->label('Opsi')

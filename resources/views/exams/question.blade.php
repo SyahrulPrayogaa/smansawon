@@ -51,7 +51,15 @@
                 </div>
 
                 <div class="rounded-3xl bg-slate-50 p-5 leading-8 text-slate-800 ring-1 ring-slate-200">
-                    {!! $question->question_text !!}
+                    @if ($question->image_path)
+                        <div class="mt-5 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200">
+                            <img src="{{ asset('storage/' . $question->image_path) }}"
+                                alt="Gambar soal nomor {{ $number }}" class="w-full object-contain">
+                        </div>
+                    @endif
+                    <div>
+                        {!! $question->question_text !!}
+                    </div>
                 </div>
 
                 <div class="mt-5 space-y-3">
