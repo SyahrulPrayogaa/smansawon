@@ -19,6 +19,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Textarea;
 
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\IconColumn;
@@ -92,9 +93,10 @@ class QuestionsRelationManager extends RelationManager
                             ->maxLength(5)
                             ->placeholder('A'),
 
-                        RichEditor::make('option_text')
+                        Textarea::make('option_text')
                             ->label('Isi Pilihan')
                             ->required()
+                            ->rows(2)
                             ->columnSpanFull(),
 
                         Toggle::make('is_correct')
