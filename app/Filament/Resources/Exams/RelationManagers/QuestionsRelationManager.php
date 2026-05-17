@@ -7,6 +7,8 @@ use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables\Table;
 
+use App\Filament\Imports\QuestionImporter;
+use Filament\Actions\ImportAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
@@ -139,6 +141,14 @@ class QuestionsRelationManager extends RelationManager
             ->headerActions([
                 CreateAction::make()
                     ->label('Tambah Soal'),
+                ImportAction::make('importQuestions')
+                    ->label('Import Soal')
+                    ->importer(QuestionImporter::class)
+                    ->options([
+                        'exam_id' => $this->getOwnerRecord()->id,
+                    ])
+                    ->csvDelimiter(',')
+                    ->chunkSize(50),
             ])
             ->recordActions([
                 EditAction::make()
