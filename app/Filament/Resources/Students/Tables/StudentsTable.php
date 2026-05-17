@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Students\Tables;
 
+use App\Filament\Imports\StudentImporter;
+use Filament\Actions\ImportAction;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -52,6 +54,11 @@ class StudentsTable
             ])
             ->filters([
                 //
+            ])
+            ->headerActions([
+                ImportAction::make()
+                    ->label('Import Siswa')
+                    ->importer(StudentImporter::class),
             ])
             ->recordActions([
                 EditAction::make(),
