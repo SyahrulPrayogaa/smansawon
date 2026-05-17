@@ -35,6 +35,14 @@
                 </div>
             @enderror
 
+            @if ($attempt->tab_leave_count > 0)
+                <div
+                    class="mb-5 rounded-2xl bg-yellow-50 p-4 text-sm font-semibold leading-6 text-yellow-800 ring-1 ring-yellow-100">
+                    Peringatan aktivitas: kamu sudah terdeteksi meninggalkan halaman ujian sebanyak
+                    {{ $attempt->tab_leave_count }} kali.
+                </div>
+            @endif
+
             <section class="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-slate-200 md:p-7">
                 <div class="mb-5 flex items-center justify-between gap-3">
                     <div>
@@ -145,6 +153,9 @@
         const questionForm = document.getElementById('questionForm');
         const timerText = document.getElementById('timerText');
         let remainingSeconds = Number(questionForm.dataset.remaining || 0);
+        let violationAlreadyRecording = false;
+        let lastViolationRecordedAt = 0;
+        let isSafeNavigation = false;
 
         function formatTime(seconds) {
             const hours = Math.floor(seconds / 3600);
@@ -182,5 +193,93 @@
 
         updateTimer();
         const timerInterval = setInterval(updateTimer, 1000);
+
+        // menangani pelanggaran saat siswa meninggalkan tab atau aplikasi ujian
+        if (questionForm) {
+            questionForm.addEventListener('submit', function() {
+                isSafeNavigation = true;
+            });
+        }
+
+        document.querySelectorAll('a[href]').forEach(function(link) {
+            link.addEventListener('click', function() {
+                const href = link.getAttribute('href');
+
+                if (!href) {
+                    return;
+                }
+
+                if (href.startsWith('#')) {
+                    return;
+                }
+
+                isSafeNavigation = true;
+            });
+        });
+
+        async function recordExamViolation(type, description) {
+            const now = Date.now();
+
+            if (isSafeNavigation) {
+                return;
+            }
+
+            if (violationAlreadyRecording || now - lastViolationRecordedAt < 5000) {
+                return;
+            }
+
+            violationAlreadyRecording = true;
+            lastViolationRecordedAt = now;
+
+            try {
+                const csrfToken = document.querySelector('input[name="_token"]')?.value;
+
+                const response = await fetch("{{ route('student.exam.record-violation') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "X-CSRF-TOKEN": csrfToken,
+                    },
+                    body: JSON.stringify({
+                        violation_type: type,
+                        description: description,
+                        url: window.location.href,
+                    }),
+                });
+
+                const result = await response.json();
+
+                if (result.is_locked) {
+                    alert(
+                        "Ujian dikunci sementara karena kamu terdeteksi meninggalkan halaman ujian beberapa kali. Silakan hubungi pengawas."
+                    );
+                    window.location.href = "{{ route('student.exam.locked') }}";
+                    return;
+                }
+
+                if (result.tab_leave_count) {
+                    alert(
+                        "Peringatan: kamu terdeteksi meninggalkan halaman ujian.\n\n" +
+                        "Pelanggaran: " + result.tab_leave_count + " dari " + result.max_violations + ".\n" +
+                        "Jika melewati batas, ujian akan dikunci sementara."
+                    );
+                }
+            } catch (error) {
+                console.error("Gagal mencatat pelanggaran ujian:", error);
+            } finally {
+                violationAlreadyRecording = false;
+            }
+        }
+
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden && !isSafeNavigation) {
+                recordExamViolation(
+                    "tab_hidden",
+                    "Siswa meninggalkan tab atau aplikasi ujian."
+                );
+            }
+        });
     </script>
+
 </x-layouts.exam>

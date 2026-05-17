@@ -2,8 +2,10 @@
     @php
         $attempt = $this->record->loadMissing([
             'student.classRoom',
+            'exam.schoolSubject',
             'exam.questions.options',
             'answers.selectedOption',
+            'violations',
         ]);
 
         $questions = $attempt->exam->questions;
@@ -126,6 +128,49 @@
                     </div>
                 </div>
             </div>
+        </x-filament::section>
+
+        <x-filament::section style="margin-top: 1rem">
+            <x-slot name="heading">
+                Riwayat Aktivitas Mencurigakan
+            </x-slot>
+
+            <x-slot name="description">
+                Catatan ketika siswa terdeteksi meninggalkan halaman ujian.
+            </x-slot>
+
+            @if ($attempt->violations->isEmpty())
+                <p style="font-size: 14px; color: #6b7280;">
+                    Tidak ada pelanggaran tercatat.
+                </p>
+            @else
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                        <thead>
+                            <tr style="border-bottom: 1px solid #e5e7eb;">
+                                <th style="padding: 12px; text-align: left;">Waktu</th>
+                                <th style="padding: 12px; text-align: left;">Jenis</th>
+                                <th style="padding: 12px; text-align: left;">Keterangan</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($attempt->violations->sortByDesc('occurred_at') as $violation)
+                                <tr style="border-bottom: 1px solid #f3f4f6;">
+                                    <td style="padding: 12px; white-space: nowrap;">
+                                        {{ $violation->occurred_at?->translatedFormat('d F Y H:i:s') ?? '-' }}
+                                    </td>
+                                    <td style="padding: 12px;">
+                                        {{ $violation->violation_type }}
+                                    </td>
+                                    <td style="padding: 12px;">
+                                        {{ $violation->description ?? '-' }}
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
         </x-filament::section>
 
         <x-filament::section style="margin-top: 1rem">

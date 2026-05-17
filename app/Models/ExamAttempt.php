@@ -12,6 +12,9 @@ class ExamAttempt extends Model
         'started_at' => 'datetime',
         'submitted_at' => 'datetime',
         'score' => 'decimal:2',
+        'is_locked' => 'boolean',
+        'locked_at' => 'datetime',
+        'unlocked_at' => 'datetime',
     ];
 
     public function exam()
@@ -32,5 +35,10 @@ class ExamAttempt extends Model
     public function answers()
     {
         return $this->hasMany(ExamAnswer::class);
+    }
+
+    public function violations()
+    {
+        return $this->hasMany(ExamViolation::class);
     }
 }

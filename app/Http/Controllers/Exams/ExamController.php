@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Illuminate\Http\JsonResponse;
 
 use App\Models\ExamAnswer;
 use App\Models\ExamAttempt;
@@ -13,9 +14,13 @@ use App\Models\ExamClassToken;
 use App\Models\Question;
 use App\Models\QuestionOption;
 use App\Models\Student;
+use App\Models\ExamViolation;
 
 class ExamController extends Controller
 {
+    // maksimal jumlah pelanggaran meninggalkan tab yang diperbolehkan sebelum akun terkunci
+    private int $maxTabLeaveViolations = 3;
+
     public function login(): View
     {
         return view('exams.login');
@@ -171,6 +176,10 @@ class ExamController extends Controller
             return redirect()->route('student.exam.profile');
         }
 
+        if ($attempt->is_locked) {
+            return redirect()->route('student.exam.locked');
+        }
+
         if ($attempt->status !== 'in_progress') {
             return redirect()
                 ->route('student.exam.profile')
@@ -256,6 +265,10 @@ class ExamController extends Controller
 
         if (! $attempt) {
             return redirect()->route('student.exam.profile');
+        }
+
+        if ($attempt->is_locked) {
+            return redirect()->route('student.exam.locked');
         }
 
         if ($attempt->status !== 'in_progress') {
@@ -360,6 +373,10 @@ class ExamController extends Controller
             return redirect()->route('student.exam.login');
         }
 
+        if ($attempt->is_locked) {
+            return redirect()->route('student.exam.locked');
+        }
+
         $this->submitAttempt($attempt);
 
         return redirect()
@@ -460,5 +477,97 @@ class ExamController extends Controller
         }
 
         return true;
+    }
+
+    // ? fungsi untuk mencatat pelanggaran yang dilakukan siswa selama ujian, seperti meninggalkan tab ujian
+    public function locked(): View|RedirectResponse
+    {
+        $student = $this->currentStudent();
+        $attempt = $this->currentAttempt();
+
+        if (! $student) {
+            return redirect()->route('student.exam.login');
+        }
+
+        if (! $attempt) {
+            return redirect()->route('student.exam.profile');
+        }
+
+        if (! $attempt->is_locked) {
+            return redirect()->route('student.exam.question', 1);
+        }
+
+        return view('exams.locked', [
+            'student' => $student,
+            'attempt' => $attempt,
+            'exam' => $attempt->exam,
+        ]);
+    }
+
+    public function recordViolation(Request $request): JsonResponse
+    {
+        $attempt = $this->currentAttempt();
+
+        if (! $attempt) {
+            return response()->json([
+                'message' => 'Attempt tidak ditemukan.',
+            ], 404);
+        }
+
+        if ($attempt->status !== 'in_progress') {
+            return response()->json([
+                'message' => 'Ujian sudah tidak berjalan.',
+            ]);
+        }
+
+        if ($attempt->is_locked) {
+            return response()->json([
+                'message' => 'Ujian sudah terkunci.',
+                'is_locked' => true,
+                'tab_leave_count' => $attempt->tab_leave_count,
+                'max_violations' => $this->maxTabLeaveViolations,
+            ]);
+        }
+
+        $validated = $request->validate([
+            'violation_type' => ['required', 'string', 'max:100'],
+            'description' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        ExamViolation::create([
+            'exam_attempt_id' => $attempt->id,
+            'violation_type' => $validated['violation_type'],
+            'description' => $validated['description'] ?? null,
+            'metadata' => [
+                'url' => $request->input('url'),
+                'user_agent' => $request->userAgent(),
+            ],
+            'occurred_at' => now(),
+        ]);
+
+        $attempt->increment('tab_leave_count');
+        $attempt->refresh();
+
+        if ($attempt->tab_leave_count >= $this->maxTabLeaveViolations) {
+            $attempt->update([
+                'is_locked' => true,
+                'locked_at' => now(),
+                'lock_reason' => 'Siswa terdeteksi meninggalkan halaman ujian beberapa kali.',
+            ]);
+
+            return response()->json([
+                'message' => 'Ujian dikunci karena melewati batas pelanggaran.',
+                'is_locked' => true,
+                'tab_leave_count' => $attempt->tab_leave_count,
+                'max_violations' => $this->maxTabLeaveViolations,
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Pelanggaran tercatat.',
+            'is_locked' => false,
+            'tab_leave_count' => $attempt->tab_leave_count,
+            'max_violations' => $this->maxTabLeaveViolations,
+        ]);
     }
 }
