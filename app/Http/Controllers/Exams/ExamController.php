@@ -341,7 +341,7 @@ class ExamController extends Controller
                 ->toArray();
 
             $isCorrect = $validSelectedOptionIds === $correctOptionIds;
-            $score = $isCorrect ? $question->score : 0;
+            $score = $isCorrect ? 1 : 0;
 
             $answer = ExamAnswer::updateOrCreate(
                 [
@@ -466,9 +466,7 @@ class ExamController extends Controller
             return;
         }
 
-        $score = ExamAnswer::query()
-            ->where('exam_attempt_id', $attempt->id)
-            ->sum('score');
+        $score = $this->calculateFinalScore($attempt);
 
         $attempt->update([
             'status' => 'submitted',
@@ -483,15 +481,32 @@ class ExamController extends Controller
             return;
         }
 
-        $score = ExamAnswer::query()
-            ->where('exam_attempt_id', $attempt->id)
-            ->sum('score');
+        $score = $this->calculateFinalScore($attempt);
 
         $attempt->update([
             'status' => 'expired',
             'submitted_at' => now(),
             'score' => $score,
         ]);
+    }
+
+    private function calculateFinalScore(ExamAttempt $attempt): float
+    {
+        $totalQuestions = Question::query()
+            ->where('exam_id', $attempt->exam_id)
+            ->where('is_active', true)
+            ->count();
+
+        if ($totalQuestions === 0) {
+            return 0;
+        }
+
+        $correctAnswers = ExamAnswer::query()
+            ->where('exam_attempt_id', $attempt->id)
+            ->where('is_correct', true)
+            ->count();
+
+        return round(($correctAnswers / $totalQuestions) * 100, 2);
     }
 
     private function isTokenCurrentlyValid(ExamClassToken $token): bool

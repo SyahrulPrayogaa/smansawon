@@ -48,7 +48,7 @@
                     <div>
                         <p class="text-sm font-bold text-yellow-600">Soal {{ $number }}</p>
                         <h1 class="mt-1 text-xl font-extrabold text-blue-950">
-                            {{ $exam->subject }}
+                            {{ $exam->schoolSubject?->name ?? '-' }}
                         </h1>
                     </div>
 

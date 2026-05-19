@@ -14,7 +14,6 @@ return new class extends Migration
         Schema::create('exams', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->string('subject');
             $table->text('description')->nullable();
             $table->unsignedInteger('duration_minutes')->default(60);
             $table->boolean('is_active')->default(false);

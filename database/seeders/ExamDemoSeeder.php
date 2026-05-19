@@ -10,6 +10,7 @@ use App\Models\Exam;
 use App\Models\ExamClassToken;
 use App\Models\Question;
 use App\Models\QuestionOption;
+use App\Models\SchoolSubject;
 use App\Models\Student;
 
 class ExamDemoSeeder extends Seeder
@@ -101,6 +102,101 @@ class ExamDemoSeeder extends Seeder
                 ]
             );
         }
+        /*
+        |--------------------------------------------------------------------------
+        | Mata Pelajaran
+        |--------------------------------------------------------------------------
+        */
+        $subjects = [
+            [
+                'name' => 'Matematika',
+                'code' => 'MTK',
+                'description' => 'Mata pelajaran Matematika.',
+            ],
+            [
+                'name' => 'Fisika',
+                'code' => 'FIS',
+                'description' => 'Mata pelajaran Fisika.',
+            ],
+            [
+                'name' => 'Kimia',
+                'code' => 'KIM',
+                'description' => 'Mata pelajaran Kimia.',
+            ],
+            [
+                'name' => 'Biologi',
+                'code' => 'BIO',
+                'description' => 'Mata pelajaran Biologi.',
+            ],
+            [
+                'name' => 'Bahasa Indonesia',
+                'code' => 'BIN',
+                'description' => 'Mata pelajaran Bahasa Indonesia.',
+            ],
+            [
+                'name' => 'Bahasa Inggris',
+                'code' => 'BIG',
+                'description' => 'Mata pelajaran Bahasa Inggris.',
+            ],
+            [
+                'name' => 'Sejarah',
+                'code' => 'SEJ',
+                'description' => 'Mata pelajaran Sejarah.',
+            ],
+            [
+                'name' => 'Geografi',
+                'code' => 'GEO',
+                'description' => 'Mata pelajaran Geografi.',
+            ],
+            [
+                'name' => 'Ekonomi',
+                'code' => 'EKO',
+                'description' => 'Mata pelajaran Ekonomi.',
+            ],
+            [
+                'name' => 'Sosiologi',
+                'code' => 'SOS',
+                'description' => 'Mata pelajaran Sosiologi.',
+            ],
+            [
+                'name' => 'Pendidikan Pancasila',
+                'code' => 'PP',
+                'description' => 'Mata pelajaran Pendidikan Pancasila.',
+            ],
+            [
+                'name' => 'Pendidikan Agama Islam',
+                'code' => 'PAI',
+                'description' => 'Mata pelajaran Pendidikan Agama Islam.',
+            ],
+            [
+                'name' => 'Informatika',
+                'code' => 'INF',
+                'description' => 'Mata pelajaran Informatika.',
+            ],
+            [
+                'name' => 'Seni Budaya',
+                'code' => 'SB',
+                'description' => 'Mata pelajaran Seni Budaya.',
+            ],
+            [
+                'name' => 'PJOK',
+                'code' => 'PJOK',
+                'description' => 'Mata pelajaran Pendidikan Jasmani, Olahraga, dan Kesehatan.',
+            ],
+        ];
+
+        foreach ($subjects as $subject) {
+            SchoolSubject::updateOrCreate(
+                [
+                    'name' => $subject['name'],
+                ],
+                [
+                    'code' => $subject['code'],
+                    'description' => $subject['description'],
+                    'is_active' => true,
+                ]
+            );
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -108,17 +204,19 @@ class ExamDemoSeeder extends Seeder
         |--------------------------------------------------------------------------
         */
 
+        $mathSubject = SchoolSubject::where('name', 'Matematika')->first();
+
         $mathExam = Exam::updateOrCreate(
             [
                 'title' => 'Ujian Matematika Kelas XI',
-                'subject' => 'Matematika',
             ],
             [
+                'school_subject_id' => $mathSubject?->id,
                 'description' => 'Ujian latihan matematika kelas XI berbasis pilihan ganda.',
                 'duration_minutes' => 60,
                 'is_active' => true,
-                'starts_at' => now()->subDay(),
-                'ends_at' => now()->addDays(7),
+                'starts_at' => null,
+                'ends_at' => null,
             ]
         );
 

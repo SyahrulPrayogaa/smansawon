@@ -110,7 +110,7 @@
                 <div>
                     <div style="font-size: 13px; color: #6b7280;">Mata Pelajaran</div>
                     <div style="font-weight: 700;">
-                        {{ $attempt->exam->subject }}
+                        {{ $attempt->exam->schoolSubject?->name ?? '-' }}
                     </div>
                 </div>
 

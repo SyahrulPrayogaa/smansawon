@@ -30,7 +30,7 @@
 
                     @if ($attempt->exam)
                         <p class="mt-1">
-                            Ujian: {{ $attempt->exam->title }}
+                            Mata Pelajaran: {{ $attempt->exam->schoolSubject?->name ?? '-' }}
                         </p>
                     @endif
 

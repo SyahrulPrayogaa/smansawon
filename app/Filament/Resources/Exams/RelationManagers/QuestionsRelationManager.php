@@ -19,6 +19,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\FileUpload;
+use Filament\Forms\Components\Hidden;
 use Filament\Forms\Components\Textarea;
 
 use Filament\Schemas\Schema;
@@ -76,10 +77,7 @@ class QuestionsRelationManager extends RelationManager
                     ->required()
                     ->default(1),
 
-                TextInput::make('score')
-                    ->label('Skor')
-                    ->numeric()
-                    ->required()
+                Hidden::make('score')
                     ->default(1),
 
                 Toggle::make('is_active')

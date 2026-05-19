@@ -131,9 +131,7 @@ class QuestionImporter extends Importer
             ? null
             : trim((string) $this->data['image_path']);
 
-        $this->record->score = filled($this->data['score'] ?? null)
-            ? $this->data['score']
-            : 1;
+        $this->record->score = 1;
 
         $this->record->is_active = true;
     }
