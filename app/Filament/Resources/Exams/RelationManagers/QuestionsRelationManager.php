@@ -14,7 +14,6 @@ use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms\Components\Repeater;
-use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
@@ -69,13 +68,19 @@ class QuestionsRelationManager extends RelationManager
                         'true_false' => 'Benar / Salah',
                     ])
                     ->default('multiple_choice')
-                    ->required(),
-
-                TextInput::make('order_number')
-                    ->label('Nomor Urut')
-                    ->numeric()
                     ->required()
-                    ->default(1),
+                    ->live()
+                    ->afterStateUpdated(function ($set, $state): void {
+                        $set('options', self::defaultOptions($state ?? 'multiple_choice'));
+                    }),
+
+                Hidden::make('order_number')
+                    ->default(function () {
+                        return ((int) $this->getOwnerRecord()
+                            ->questions()
+                            ->max('order_number')) + 1;
+                    })
+                    ->dehydrated(true),
 
                 Hidden::make('score')
                     ->default(1),
@@ -91,21 +96,24 @@ class QuestionsRelationManager extends RelationManager
                         TextInput::make('option_label')
                             ->label('Label')
                             ->required()
-                            ->maxLength(5)
-                            ->placeholder('A'),
+                            ->disabled()
+                            ->dehydrated(true)
+                            ->maxLength(5),
 
                         Textarea::make('option_text')
                             ->label('Isi Pilihan')
                             ->required()
                             ->rows(2)
-                            ->helperText('Boleh menggunakan LaTeX, contoh: \\(\\sqrt{25}\\)')
                             ->columnSpanFull(),
 
                         Toggle::make('is_correct')
                             ->label('Jawaban Benar'),
                     ])
                     ->columns(2)
-                    ->defaultItems(5)
+                    ->default(self::defaultOptions('multiple_choice'))
+                    ->addable(false)
+                    ->deletable(false)
+                    ->reorderable(false)
                     ->columnSpanFull(),
             ]);
     }
@@ -166,5 +174,51 @@ class QuestionsRelationManager extends RelationManager
                         ->label('Hapus Terpilih'),
                 ]),
             ]);
+    }
+
+    private static function defaultOptions(string $questionType = 'multiple_choice'): array
+    {
+        if ($questionType === 'true_false') {
+            return [
+                [
+                    'option_label' => 'A',
+                    'option_text' => 'Benar',
+                    'is_correct' => false,
+                ],
+                [
+                    'option_label' => 'B',
+                    'option_text' => 'Salah',
+                    'is_correct' => false,
+                ],
+            ];
+        }
+
+        return [
+            [
+                'option_label' => 'A',
+                'option_text' => '',
+                'is_correct' => false,
+            ],
+            [
+                'option_label' => 'B',
+                'option_text' => '',
+                'is_correct' => false,
+            ],
+            [
+                'option_label' => 'C',
+                'option_text' => '',
+                'is_correct' => false,
+            ],
+            [
+                'option_label' => 'D',
+                'option_text' => '',
+                'is_correct' => false,
+            ],
+            [
+                'option_label' => 'E',
+                'option_text' => '',
+                'is_correct' => false,
+            ],
+        ];
     }
 }
