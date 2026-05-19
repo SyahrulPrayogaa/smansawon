@@ -28,4 +28,26 @@ class ExamAnswer extends Model
     {
         return $this->belongsTo(QuestionOption::class, 'question_option_id');
     }
+
+    /**
+     * Mengambil baris dari tabel exam_answer_options.
+     */
+    public function selectedOptions()
+    {
+        return $this->hasMany(ExamAnswerOption::class);
+    }
+
+    /**
+     * Mengambil langsung opsi jawaban yang dipilih siswa.
+     * Ini yang dipakai untuk multiple choice, multiple select, dan true/false.
+     */
+    public function options()
+    {
+        return $this->belongsToMany(
+            QuestionOption::class,
+            'exam_answer_options',
+            'exam_answer_id',
+            'question_option_id'
+        );
+    }
 }

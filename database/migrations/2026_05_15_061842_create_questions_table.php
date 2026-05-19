@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('exam_id')->constrained()->cascadeOnDelete();
             $table->longText('question_text');
-            $table->enum('question_type', ['multiple_choice', 'essay'])->default('multiple_choice');
+            $table->string('question_type', 50)->default('multiple_choice');
             $table->unsignedInteger('order_number')->default(1);
             $table->decimal('score', 8, 2)->default(1);
             $table->boolean('is_active')->default(true);

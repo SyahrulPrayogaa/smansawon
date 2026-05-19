@@ -221,6 +221,10 @@ class ExamController extends Controller
             ->where('question_id', $question->id)
             ->first();
 
+        $selectedOptionIds = $selectedAnswer
+            ? $selectedAnswer->options()->pluck('question_options.id')->toArray()
+            : [];
+
         $answeredQuestionIds = ExamAnswer::query()
             ->where('exam_attempt_id', $attempt->id)
             ->pluck('question_id')
@@ -245,6 +249,7 @@ class ExamController extends Controller
             'number' => $number,
             'totalQuestions' => $totalQuestions,
             'selectedAnswer' => $selectedAnswer,
+            'selectedOptionIds' => $selectedOptionIds,
             'remainingSeconds' => $this->remainingSeconds($attempt),
             'answeredNumbers' => $answeredNumbers,
             'answeredCount' => $answeredCount,
@@ -255,7 +260,6 @@ class ExamController extends Controller
 
     public function saveAnswer(Request $request, int $number): RedirectResponse
     {
-        // dd($request->all());
         $student = $this->currentStudent();
         $attempt = $this->currentAttempt();
 
@@ -297,39 +301,73 @@ class ExamController extends Controller
         $question = $questions[$number - 1];
 
         $validated = $request->validate([
-            'question_option_id' => ['nullable', 'integer', 'exists:question_options,id'],
+            'question_option_ids' => ['nullable', 'array'],
+            'question_option_ids.*' => ['integer', 'exists:question_options,id'],
             'action' => ['required', 'string', 'in:previous,next,save,finish'],
         ]);
 
-        if (! empty($validated['question_option_id'])) {
-            $selectedOption = QuestionOption::query()
-                ->where('id', $validated['question_option_id'])
-                ->where('question_id', $question->id)
-                ->first();
+        $selectedOptionIds = $validated['question_option_ids'] ?? [];
 
-            if (! $selectedOption) {
+        $selectedOptionIds = collect($selectedOptionIds)
+            ->map(fn($id) => (int) $id)
+            ->unique()
+            ->values()
+            ->toArray();
+
+        if (! empty($selectedOptionIds)) {
+            $validSelectedOptionIds = QuestionOption::query()
+                ->where('question_id', $question->id)
+                ->whereIn('id', $selectedOptionIds)
+                ->pluck('id')
+                ->map(fn($id) => (int) $id)
+                ->sort()
+                ->values()
+                ->toArray();
+
+            if (count($validSelectedOptionIds) !== count($selectedOptionIds)) {
                 return back()
                     ->withErrors([
-                        'question_option_id' => 'Pilihan jawaban tidak valid.',
+                        'question_option_ids' => 'Pilihan jawaban tidak valid.',
                     ]);
             }
 
-            $isCorrect = $selectedOption->is_correct;
+            $correctOptionIds = QuestionOption::query()
+                ->where('question_id', $question->id)
+                ->where('is_correct', true)
+                ->pluck('id')
+                ->map(fn($id) => (int) $id)
+                ->sort()
+                ->values()
+                ->toArray();
+
+            $isCorrect = $validSelectedOptionIds === $correctOptionIds;
             $score = $isCorrect ? $question->score : 0;
 
-            ExamAnswer::updateOrCreate(
+            $answer = ExamAnswer::updateOrCreate(
                 [
                     'exam_attempt_id' => $attempt->id,
                     'question_id' => $question->id,
                 ],
                 [
-                    'question_option_id' => $selectedOption->id,
+                    'question_option_id' => $validSelectedOptionIds[0] ?? null,
                     'answer_text' => null,
                     'is_correct' => $isCorrect,
                     'score' => $score,
                     'answered_at' => now(),
                 ]
             );
+
+            $answer->options()->sync($validSelectedOptionIds);
+        } else {
+            $existingAnswer = ExamAnswer::query()
+                ->where('exam_attempt_id', $attempt->id)
+                ->where('question_id', $question->id)
+                ->first();
+
+            if ($existingAnswer) {
+                $existingAnswer->options()->sync([]);
+                $existingAnswer->delete();
+            }
         }
 
         if ($validated['action'] === 'finish') {

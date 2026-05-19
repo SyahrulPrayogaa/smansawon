@@ -62,7 +62,8 @@ class QuestionsRelationManager extends RelationManager
                     ->label('Jenis Soal')
                     ->options([
                         'multiple_choice' => 'Pilihan Ganda',
-                        'essay' => 'Esai',
+                        'multiple_select' => 'Pilihan Ganda Kompleks',
+                        'true_false' => 'Benar / Salah',
                     ])
                     ->default('multiple_choice')
                     ->required(),
