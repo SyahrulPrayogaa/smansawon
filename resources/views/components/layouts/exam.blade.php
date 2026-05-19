@@ -36,4 +36,22 @@
     {{ $slot }}
 </body>
 
+<script>
+    window.MathJax = {
+        tex: {
+            inlineMath: [
+                ['\\(', '\\)']
+            ],
+            displayMath: [
+                ['\\[', '\\]']
+            ]
+        },
+        svg: {
+            fontCache: 'global'
+        }
+    };
+</script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
 </html>

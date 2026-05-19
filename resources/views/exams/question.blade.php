@@ -66,7 +66,7 @@
                         </div>
                     @endif
                     <div>
-                        {!! $question->question_text !!}
+                        {!! nl2br(e($question->question_text)) !!}
                     </div>
                 </div>
 
@@ -85,7 +85,7 @@
                                 </span>
 
                                 <span class="leading-7 text-slate-700">
-                                    {!! $option->option_text !!}
+                                    {!! nl2br(e($option->option_text)) !!}
                                 </span>
                             </label>
                         @endforeach

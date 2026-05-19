@@ -42,9 +42,11 @@ class QuestionsRelationManager extends RelationManager
     {
         return $schema
             ->components([
-                RichEditor::make('question_text')
+                Textarea::make('question_text')
                     ->label('Teks Soal')
                     ->required()
+                    ->rows(5)
+                    ->helperText('Untuk notasi matematika, gunakan LaTeX. Contoh: \\(x^2 + 2x + 1\\)')
                     ->columnSpanFull(),
 
                 FileUpload::make('image_path')
@@ -98,6 +100,7 @@ class QuestionsRelationManager extends RelationManager
                             ->label('Isi Pilihan')
                             ->required()
                             ->rows(2)
+                            ->helperText('Boleh menggunakan LaTeX, contoh: \\(\\sqrt{25}\\)')
                             ->columnSpanFull(),
 
                         Toggle::make('is_correct')
