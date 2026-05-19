@@ -28,6 +28,7 @@ Route::prefix('ujian')->name('student.exam.')->group(function () {
     Route::post('/soal/{number}', [ExamController::class, 'saveAnswer'])->name('save-answer');
 
     Route::post('/selesai', [ExamController::class, 'finish'])->name('finish');
+    Route::get('/hasil', [ExamController::class, 'result'])->name('result');
 
     Route::get('/terkunci', [ExamController::class, 'locked'])->name('locked');
     Route::post('/catat-pelanggaran', [ExamController::class, 'recordViolation'])->name('record-violation');

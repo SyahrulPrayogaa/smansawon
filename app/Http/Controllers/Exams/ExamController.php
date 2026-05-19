@@ -127,11 +127,12 @@ class ExamController extends Controller
             ->where('student_id', $student->id)
             ->first();
 
-        if ($existingAttempt && $existingAttempt->status === 'submitted') {
-            return back()
-                ->withErrors([
-                    'token' => 'Kamu sudah mengumpulkan ujian ini.',
-                ]);
+        if ($existingAttempt && in_array($existingAttempt->status, ['submitted', 'expired'])) {
+            session([
+                'exam_attempt_id' => $existingAttempt->id,
+            ]);
+
+            return redirect()->route('student.exam.result');
         }
 
         if ($existingAttempt && $existingAttempt->status === 'expired') {
@@ -180,17 +181,19 @@ class ExamController extends Controller
             return redirect()->route('student.exam.locked');
         }
 
+        if (in_array($attempt->status, ['submitted', 'expired'])) {
+            return redirect()->route('student.exam.result');
+        }
+
         if ($attempt->status !== 'in_progress') {
-            return redirect()
-                ->route('student.exam.profile')
-                ->with('success', 'Ujian sudah selesai.');
+            return redirect()->route('student.exam.profile');
         }
 
         if ($this->remainingSeconds($attempt) <= 0) {
             $this->expireAttempt($attempt);
 
             return redirect()
-                ->route('student.exam.profile')
+                ->route('student.exam.result')
                 ->with('success', 'Waktu ujian sudah habis. Jawaban yang tersimpan telah dikumpulkan.');
         }
 
@@ -268,7 +271,7 @@ class ExamController extends Controller
         }
 
         if (! $attempt) {
-            return redirect()->route('student.exam.profile');
+            return redirect()->route('student.exam.result');
         }
 
         if ($attempt->is_locked) {
@@ -283,7 +286,7 @@ class ExamController extends Controller
             $this->expireAttempt($attempt);
 
             return redirect()
-                ->route('student.exam.profile')
+                ->route('student.exam.result')
                 ->with('success', 'Waktu ujian sudah habis. Jawaban yang tersimpan telah dikumpulkan.');
         }
 
@@ -386,7 +389,7 @@ class ExamController extends Controller
             $this->submitAttempt($attempt);
 
             return redirect()
-                ->route('student.exam.profile')
+                ->route('student.exam.result')
                 ->with('success', 'Jawaban ujian berhasil dikumpulkan.');
         }
 
@@ -418,7 +421,7 @@ class ExamController extends Controller
         $this->submitAttempt($attempt);
 
         return redirect()
-            ->route('student.exam.profile')
+            ->route('student.exam.result')
             ->with('success', 'Jawaban ujian berhasil dikumpulkan.');
     }
 
@@ -621,6 +624,55 @@ class ExamController extends Controller
             'is_locked' => false,
             'tab_leave_count' => $attempt->tab_leave_count,
             'max_violations' => $this->maxTabLeaveViolations,
+        ]);
+    }
+
+    public function result(): View|RedirectResponse
+    {
+        $student = $this->currentStudent();
+        $attempt = $this->currentAttempt();
+
+        if (! $student) {
+            return redirect()->route('student.exam.login');
+        }
+
+        if (! $attempt) {
+            return redirect()->route('student.exam.profile');
+        }
+
+        if ($attempt->status === 'in_progress') {
+            return redirect()->route('student.exam.question', 1);
+        }
+
+        $totalQuestions = Question::query()
+            ->where('exam_id', $attempt->exam_id)
+            ->where('is_active', true)
+            ->count();
+
+        $correctCount = ExamAnswer::query()
+            ->where('exam_attempt_id', $attempt->id)
+            ->where('is_correct', true)
+            ->count();
+
+        $answeredCount = ExamAnswer::query()
+            ->where('exam_attempt_id', $attempt->id)
+            ->count();
+
+        $unansweredCount = max(0, $totalQuestions - $answeredCount);
+
+        // Salah dihitung dari semua soal yang tidak benar.
+        // Jadi termasuk soal salah dan soal kosong.
+        $wrongCount = max(0, $totalQuestions - $correctCount);
+
+        return view('exams.result', [
+            'student' => $student,
+            'attempt' => $attempt,
+            'exam' => $attempt->exam,
+            'totalQuestions' => $totalQuestions,
+            'correctCount' => $correctCount,
+            'wrongCount' => $wrongCount,
+            'answeredCount' => $answeredCount,
+            'unansweredCount' => $unansweredCount,
         ]);
     }
 }
