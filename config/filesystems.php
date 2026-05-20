@@ -40,8 +40,11 @@ return [
 
         'public' => [
             'driver' => 'local',
+            // ! Local Root
             'root' => storage_path('app/public'),
-            'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage',
+            // ! Production root
+            // 'root' => '/home/smanwono/public_html/storage',
+            'url' => rtrim(env('APP_URL', 'http://localhost'), '/') . '/storage',
             'visibility' => 'public',
             'throw' => false,
             'report' => false,
