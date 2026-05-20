@@ -23,7 +23,9 @@ class DatabaseSeeder extends Seeder
         // ]);
 
         $this->call([
-            LandingPageSeeder::class,
+            UserSeeder::class,
+            ExamDemoSeeder::class,
+            LandingPageSeeder::class
         ]);
     }
 }

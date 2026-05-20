@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Filament\Resources\Questions\Pages;
+
+use App\Filament\Resources\Questions\QuestionResource;
+use Filament\Resources\Pages\CreateRecord;
+
+class CreateQuestion extends CreateRecord
+{
+    protected static string $resource = QuestionResource::class;
+
+    public function getTitle(): string
+    {
+        return 'Tambah Soal';
+    }
+
+    public function getBreadcrumb(): string
+    {
+        return 'Tambah Soal';
+    }
+}
