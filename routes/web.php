@@ -10,12 +10,12 @@ use Illuminate\Support\Facades\Route;
 //     return view('welcome');
 // });
 
-// Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// Route::get('/berita', [PostController::class, 'index'])->name('posts.index');
-// Route::get('/berita/{post:slug}', [PostController::class, 'show'])->name('posts.show');
+Route::get('/berita', [PostController::class, 'index'])->name('posts.index');
+Route::get('/berita/{post:slug}', [PostController::class, 'show'])->name('posts.show');
 
-// Route::get('/agenda', [AgendaController::class, 'index'])->name('agendas.index');
+Route::get('/agenda', [AgendaController::class, 'index'])->name('agendas.index');
 
 Route::prefix('ujian')->name('student.exam.')->group(function () {
     Route::get('/', [ExamController::class, 'login'])->name('login');
