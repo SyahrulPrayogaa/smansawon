@@ -60,6 +60,7 @@ class QuestionsRelationManager extends RelationManager
                     ->downloadable()
                     ->openable()
                     ->previewable(true)
+                    ->fetchFileInformation(false)
                     ->helperText('Opsional. Gunakan jika soal membutuhkan gambar, grafik, tabel, atau ilustrasi.')
                     ->columnSpanFull(),
 
