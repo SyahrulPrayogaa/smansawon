@@ -220,7 +220,20 @@
                                 <td style="padding: 12px; vertical-align: top;">
                                     @if ($selectedOption)
                                         <strong>{{ $selectedOption->option_label }}.</strong>
-                                        {{ strip_tags($selectedOption->option_text) }}
+
+                                        @if (filled($selectedOption->option_text))
+                                            <span>
+                                                {!! nl2br(e($selectedOption->option_text)) !!}
+                                            </span>
+                                        @endif
+
+                                        @if ($selectedOption->image_path)
+                                            <div style="margin-top: 8px;">
+                                                <img src="{{ asset('storage/' . $selectedOption->image_path) }}"
+                                                    alt="Gambar jawaban siswa"
+                                                    style="max-width: 180px; max-height: 120px; object-fit: contain; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                            </div>
+                                        @endif
                                     @else
                                         <span style="color: #9ca3af;">Tidak dijawab</span>
                                     @endif
@@ -229,7 +242,20 @@
                                 <td style="padding: 12px; vertical-align: top;">
                                     @if ($correctOption)
                                         <strong>{{ $correctOption->option_label }}.</strong>
-                                        {{ strip_tags($correctOption->option_text) }}
+
+                                        @if (filled($correctOption->option_text))
+                                            <span>
+                                                {!! nl2br(e($correctOption->option_text)) !!}
+                                            </span>
+                                        @endif
+
+                                        @if ($correctOption->image_path)
+                                            <div style="margin-top: 8px;">
+                                                <img src="{{ asset('storage/' . $correctOption->image_path) }}"
+                                                    alt="Gambar jawaban benar"
+                                                    style="max-width: 180px; max-height: 120px; object-fit: contain; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                            </div>
+                                        @endif
                                     @else
                                         <span style="color: #9ca3af;">Belum ditentukan</span>
                                     @endif

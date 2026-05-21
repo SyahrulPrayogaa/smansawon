@@ -106,8 +106,21 @@ class QuestionsRelationManager extends RelationManager
 
                         Textarea::make('option_text')
                             ->label('Isi Pilihan')
-                            ->required()
                             ->rows(2)
+                            ->columnSpanFull(),
+
+                        FileUpload::make('image_path')
+                            ->label('Gambar Pilihan')
+                            ->image()
+                            ->disk('public')
+                            ->directory('exam-option-images')
+                            ->visibility('public')
+                            ->imagePreviewHeight('160')
+                            ->maxSize(2048)
+                            ->downloadable()
+                            ->openable()
+                            ->previewable(true)
+                            ->helperText('Opsional. Gunakan jika opsi jawaban membutuhkan gambar, grafik, rumus, atau ilustrasi.')
                             ->columnSpanFull(),
 
                         Toggle::make('is_correct')

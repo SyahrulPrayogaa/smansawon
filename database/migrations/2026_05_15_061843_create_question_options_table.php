@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('question_id')->constrained()->cascadeOnDelete();
             $table->string('option_label', 5);
             $table->text('option_text');
+            $table->string('image_path')->nullable();
             $table->boolean('is_correct')->default(false);
             $table->timestamps();
         });

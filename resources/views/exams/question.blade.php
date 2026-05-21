@@ -71,27 +71,39 @@
                 </div>
 
                 <div class="mt-5 space-y-3">
-                    @if (in_array($question->question_type, ['multiple_choice', 'true_false']))
-                        @foreach ($question->options as $option)
-                            <label
-                                class="flex cursor-pointer gap-3 rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-blue-300 hover:bg-blue-50">
-                                <input type="radio" name="question_option_ids[]" value="{{ $option->id }}"
-                                    @checked(in_array($option->id, $selectedOptionIds ?? []))
-                                    class="mt-1 h-4 w-4 shrink-0 border-slate-300 text-blue-900 focus:ring-blue-900">
+                    {{-- @if (in_array($question->question_type, ['multiple_choice', 'true_false'])) --}}
+                    @foreach ($question->options as $option)
+                        <label
+                            class="flex cursor-pointer gap-3 rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-blue-300 hover:bg-blue-50">
+                            <input type="{{ $question->question_type === 'multiple_select' ? 'checkbox' : 'radio' }}"
+                                name="question_option_ids[]" value="{{ $option->id }}" @checked(in_array($option->id, $selectedOptionIds ?? []))
+                                class="mt-1 h-4 w-4 shrink-0 border-slate-300 text-blue-900 focus:ring-blue-900">
 
-                                <span
-                                    class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-extrabold text-blue-950">
-                                    {{ $option->option_label }}
-                                </span>
+                            <span
+                                class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-slate-100 text-xs font-extrabold text-blue-950">
+                                {{ $option->option_label }}
+                            </span>
 
-                                <span class="leading-7 text-slate-700">
-                                    {!! nl2br(e($option->option_text)) !!}
-                                </span>
-                            </label>
-                        @endforeach
-                    @endif
+                            <div class="flex-1 leading-7 text-slate-700">
+                                @if (filled($option->option_text))
+                                    <div>
+                                        {!! nl2br(e($option->option_text)) !!}
+                                    </div>
+                                @endif
 
-                    @if ($question->question_type === 'multiple_select')
+                                @if ($option->image_path)
+                                    <div class="mt-3 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200">
+                                        <img src="{{ asset('storage/' . $option->image_path) }}"
+                                            alt="Gambar pilihan {{ $option->option_label }}"
+                                            class="w-full max-h-64 object-contain">
+                                    </div>
+                                @endif
+                            </div>
+                        </label>
+                    @endforeach
+                    {{-- @endif --}}
+
+                    {{-- @if ($question->question_type === 'multiple_select')
                         @foreach ($question->options as $option)
                             <label
                                 class="flex cursor-pointer gap-3 rounded-2xl border border-slate-200 bg-white p-4 transition hover:border-blue-300 hover:bg-blue-50">
@@ -104,16 +116,28 @@
                                     {{ $option->option_label }}
                                 </span>
 
-                                <span class="leading-7 text-slate-700">
-                                    {!! $option->option_text !!}
-                                </span>
+                                <div class="flex-1 leading-7 text-slate-700">
+                                    @if (filled($option->option_text))
+                                        <div>
+                                            {!! nl2br(e($option->option_text)) !!}
+                                        </div>
+                                    @endif
+
+                                    @if ($option->image_path)
+                                        <div class="mt-3 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200">
+                                            <img src="{{ asset('storage/' . $option->image_path) }}"
+                                                alt="Gambar pilihan {{ $option->option_label }}"
+                                                class="w-full max-h-64 object-contain">
+                                        </div>
+                                    @endif
+                                </div>
                             </label>
                         @endforeach
 
                         <p class="mt-3 text-xs font-semibold text-slate-500">
                             Soal ini dapat memiliki lebih dari satu jawaban benar.
                         </p>
-                    @endif
+                    @endif --}}
 
                     @error('question_option_id')
                         <p class="text-sm font-semibold text-red-600">
