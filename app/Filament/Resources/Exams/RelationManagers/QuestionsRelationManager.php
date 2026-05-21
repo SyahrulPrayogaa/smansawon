@@ -57,6 +57,9 @@ class QuestionsRelationManager extends RelationManager
                     ->visibility('public')
                     ->imagePreviewHeight('200')
                     ->maxSize(2048)
+                    ->downloadable()
+                    ->openable()
+                    ->previewable(true)
                     ->helperText('Opsional. Gunakan jika soal membutuhkan gambar, grafik, tabel, atau ilustrasi.')
                     ->columnSpanFull(),
 
