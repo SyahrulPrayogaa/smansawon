@@ -5,6 +5,7 @@
             'exam.schoolSubject',
             'exam.questions.options',
             'answers.selectedOption',
+            'answers.options',
             'violations',
         ]);
 
@@ -208,8 +209,18 @@
                         @foreach ($questions as $index => $question)
                             @php
                                 $answer = $answers->get($question->id);
-                                $selectedOption = $answer?->selectedOption;
-                                $correctOption = $question->options->firstWhere('is_correct', true);
+
+                                $selectedOptions = $answer?->options ?? collect();
+
+                                // Fallback untuk data lama yang masih tersimpan di question_option_id
+                                if ($selectedOptions->isEmpty() && $answer?->selectedOption) {
+                                    $selectedOptions = collect([$answer->selectedOption]);
+                                }
+
+                                $correctOptions = $question->options
+                                    ->where('is_correct', true)
+                                    ->sortBy('option_label')
+                                    ->values();
                             @endphp
 
                             <tr style="border-bottom: 1px solid #f3f4f6;">
@@ -218,47 +229,71 @@
                                 </td>
 
                                 <td style="padding: 12px; vertical-align: top;">
-                                    @if ($selectedOption)
-                                        <strong>{{ $selectedOption->option_label }}.</strong>
+                                    @forelse ($selectedOptions as $selectedOption)
+                                        <div style="margin-bottom: 10px;">
+                                            @php
+                                                $selectedOptionText = trim(
+                                                    strip_tags($selectedOption->option_text ?? ''),
+                                                );
+                                            @endphp
 
-                                        @if (filled($selectedOption->option_text))
-                                            <span>
-                                                {!! nl2br(e($selectedOption->option_text)) !!}
-                                            </span>
-                                        @endif
+                                            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                                <strong style="white-space: nowrap;">
+                                                    {{ $selectedOption->option_label }}.
+                                                </strong>
 
-                                        @if ($selectedOption->image_path)
-                                            <div style="margin-top: 8px;">
-                                                <img src="{{ asset('storage/' . $selectedOption->image_path) }}"
-                                                    alt="Gambar jawaban siswa"
-                                                    style="max-width: 180px; max-height: 120px; object-fit: contain; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                                @if (filled($selectedOptionText))
+                                                    <span style="display: inline;">
+                                                        {!! e($selectedOptionText) !!}
+                                                    </span>
+                                                @endif
                                             </div>
-                                        @endif
-                                    @else
+
+                                            @if ($selectedOption->image_path)
+                                                <div style="margin-top: 8px;">
+                                                    <img src="{{ asset('storage/' . $selectedOption->image_path) }}"
+                                                        alt="Gambar jawaban siswa {{ $selectedOption->option_label }}"
+                                                        style="max-width: 180px; max-height: 120px; object-fit: contain; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @empty
                                         <span style="color: #9ca3af;">Tidak dijawab</span>
-                                    @endif
+                                    @endforelse
                                 </td>
 
                                 <td style="padding: 12px; vertical-align: top;">
-                                    @if ($correctOption)
-                                        <strong>{{ $correctOption->option_label }}.</strong>
+                                    @forelse ($correctOptions as $correctOption)
+                                        <div style="margin-bottom: 10px;">
+                                            @php
+                                                $correctOptionText = trim(
+                                                    strip_tags($correctOption->option_text ?? ''),
+                                                );
+                                            @endphp
 
-                                        @if (filled($correctOption->option_text))
-                                            <span>
-                                                {!! nl2br(e($correctOption->option_text)) !!}
-                                            </span>
-                                        @endif
+                                            <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap;">
+                                                <strong style="white-space: nowrap;">
+                                                    {{ $correctOption->option_label }}.
+                                                </strong>
 
-                                        @if ($correctOption->image_path)
-                                            <div style="margin-top: 8px;">
-                                                <img src="{{ asset('storage/' . $correctOption->image_path) }}"
-                                                    alt="Gambar jawaban benar"
-                                                    style="max-width: 180px; max-height: 120px; object-fit: contain; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                                @if (filled($correctOptionText))
+                                                    <span style="display: inline;">
+                                                        {!! e($correctOptionText) !!}
+                                                    </span>
+                                                @endif
                                             </div>
-                                        @endif
-                                    @else
+
+                                            @if ($correctOption->image_path)
+                                                <div style="margin-top: 8px;">
+                                                    <img src="{{ asset('storage/' . $correctOption->image_path) }}"
+                                                        alt="Gambar jawaban benar {{ $correctOption->option_label }}"
+                                                        style="max-width: 180px; max-height: 120px; object-fit: contain; border-radius: 8px; border: 1px solid #e5e7eb;">
+                                                </div>
+                                            @endif
+                                        </div>
+                                    @empty
                                         <span style="color: #9ca3af;">Belum ditentukan</span>
-                                    @endif
+                                    @endforelse
                                 </td>
 
                                 <td style="padding: 12px; vertical-align: top; white-space: nowrap;">
@@ -290,4 +325,39 @@
             </div>
         </x-filament::section>
     </div>
+
+    @once
+        <script>
+            window.MathJax = {
+                tex: {
+                    inlineMath: [
+                        ['\\(', '\\)']
+                    ],
+                    displayMath: [
+                        ['\\[', '\\]']
+                    ],
+                    processEscapes: true
+                },
+                svg: {
+                    fontCache: 'global'
+                }
+            };
+        </script>
+
+        <script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                if (window.MathJax) {
+                    MathJax.typesetPromise();
+                }
+            });
+
+            document.addEventListener('livewire:navigated', function() {
+                if (window.MathJax) {
+                    MathJax.typesetPromise();
+                }
+            });
+        </script>
+    @endonce
 </x-filament-panels::page>

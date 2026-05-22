@@ -65,8 +65,23 @@
                                 alt="Gambar soal nomor {{ $number }}" class="w-full object-contain">
                         </div>
                     @endif
-                    <div>
-                        {!! nl2br(e($question->question_text)) !!}
+
+                    @php
+                        $questionText = trim(strip_tags($question->question_text ?? ''));
+                    @endphp
+                    <div class="rounded-3xl bg-slate-50 p-5 leading-8 text-slate-800 ring-1 ring-slate-200">
+                        @if (filled($questionText))
+                            <div class="question-math-text">
+                                {!! e($questionText) !!}
+                            </div>
+                        @endif
+
+                        @if ($question->image_path)
+                            <div class="mt-5 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200">
+                                <img src="{{ asset('storage/' . $question->image_path) }}"
+                                    alt="Gambar soal nomor {{ $number }}" class="w-full object-contain">
+                            </div>
+                        @endif
                     </div>
                 </div>
 
@@ -83,12 +98,18 @@
                                 {{ $option->option_label }}
                             </span>
 
+                            @php
+                                $optionText = trim(strip_tags($option->option_text ?? ''));
+                            @endphp
+
                             <div class="flex-1 leading-7 text-slate-700">
-                                @if (filled($option->option_text))
-                                    <div>
-                                        {!! nl2br(e($option->option_text)) !!}
-                                    </div>
-                                @endif
+                                <div class="flex flex-wrap items-center gap-1.5">
+                                    @if (filled($optionText))
+                                        <span class="inline">
+                                            {!! e($optionText) !!}
+                                        </span>
+                                    @endif
+                                </div>
 
                                 @if ($option->image_path)
                                     <div class="mt-3 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200">
@@ -160,6 +181,14 @@
             </div>
         </div>
     </form>
+
+    <style>
+        .question-math-text mjx-container {
+            display: inline-block !important;
+            margin: 0 !important;
+            vertical-align: middle;
+        }
+    </style>
 
     <script>
         const questionForm = document.getElementById('questionForm');
