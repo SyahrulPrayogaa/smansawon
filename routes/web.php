@@ -37,6 +37,6 @@ Route::prefix('ujian')->name('student.exam.')->group(function () {
     Route::post('/keluar', [ExamController::class, 'logout'])->name('logout');
 });
 
-Route::get('/admin/rekap-nilai/export-pdf', [ScoreRecapExportController::class, 'pdf'])
+Route::get('/admin/score-recap/export-pdf', [ScoreRecapExportController::class, 'pdf'])
     ->middleware(['web', 'auth'])
     ->name('admin.score-recap.pdf');
