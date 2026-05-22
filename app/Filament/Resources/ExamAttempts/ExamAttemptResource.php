@@ -19,11 +19,11 @@ use Filament\Tables\Table;
 
 class ExamAttemptResource extends Resource
 {
-    protected static ?string $modelLabel = 'Hasil Ujian';
+    protected static ?string $modelLabel = 'Hasil Ujian Siswa';
 
-    protected static ?string $pluralModelLabel = 'Rekap Hasil Ujian';
+    protected static ?string $pluralModelLabel = 'Hasil Ujian Siswa';
 
-    protected static ?string $navigationLabel = 'Rekap Hasil Ujian';
+    protected static ?string $navigationLabel = 'Hasil Ujian Siswa';
 
     protected static string|UnitEnum|null $navigationGroup = 'Manajemen Ujian';
 

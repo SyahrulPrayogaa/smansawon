@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\ScoreRecapExportController;
 use App\Http\Controllers\Exams\ExamController;
 use App\Http\Controllers\Frontend\AgendaController;
 use App\Http\Controllers\Frontend\HomeController;
@@ -35,3 +36,7 @@ Route::prefix('ujian')->name('student.exam.')->group(function () {
 
     Route::post('/keluar', [ExamController::class, 'logout'])->name('logout');
 });
+
+Route::get('/admin/rekap-nilai/export-pdf', [ScoreRecapExportController::class, 'pdf'])
+    ->middleware(['web', 'auth'])
+    ->name('admin.score-recap.pdf');
