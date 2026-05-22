@@ -17,6 +17,11 @@ class ExamAttemptsTable
     {
         return $table
             ->columns([
+                TextColumn::make('order_number')
+                    ->label('No')
+                    ->rowIndex()
+                    ->width('60px'),
+
                 TextColumn::make('student.nisn')
                     ->label('NISN')
                     ->searchable(),

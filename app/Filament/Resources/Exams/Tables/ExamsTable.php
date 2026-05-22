@@ -15,6 +15,11 @@ class ExamsTable
     {
         return $table
             ->columns([
+                TextColumn::make('order_number')
+                    ->label('No')
+                    ->rowIndex()
+                    ->width('60px'),
+
                 TextColumn::make('title')
                     ->label('Nama Paket Soal')
                     ->searchable()

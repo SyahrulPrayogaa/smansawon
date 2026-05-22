@@ -81,7 +81,7 @@ class ScoreRecapExportController extends Controller
             ];
         });
 
-        $pdf = Pdf::loadView('exports.score-recap-pdf', [
+        $pdf = Pdf::loadView('admin.exports.score-recap-pdf', [
             'classRoom' => $classRoom,
             'schoolSubject' => $schoolSubject,
             'exam' => $exam,

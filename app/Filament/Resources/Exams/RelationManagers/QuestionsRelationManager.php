@@ -141,12 +141,16 @@ class QuestionsRelationManager extends RelationManager
             ->columns([
                 TextColumn::make('order_number')
                     ->label('No')
-                    ->sortable(),
+                    ->sortable()
+                    ->width('60px'),
 
                 TextColumn::make('question_text')
                     ->label('Soal')
                     ->html()
-                    ->limit(80)
+                    ->limit(60)
+                    ->formatStateUsing(fn(?string $state): string => str(strip_tags($state ?? ''))->limit(90))
+                    ->tooltip(fn($record): string => str(strip_tags($record->question_text ?? ''))->limit(250))
+                    ->wrap()
                     ->searchable(),
 
                 IconColumn::make('image_path')
@@ -160,7 +164,8 @@ class QuestionsRelationManager extends RelationManager
 
                 TextColumn::make('score')
                     ->label('Skor')
-                    ->sortable(),
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
 
                 IconColumn::make('is_active')
                     ->label('Aktif')

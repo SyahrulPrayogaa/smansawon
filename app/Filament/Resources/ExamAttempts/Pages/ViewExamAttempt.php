@@ -10,7 +10,7 @@ class ViewExamAttempt extends ViewRecord
 {
     protected static string $resource = ExamAttemptResource::class;
 
-    protected string $view = 'filament.resources.exam-results.pages.view-exam-results';
+    protected string $view = 'admin.filament.resources.exam-results.pages.view-exam-results';
 
     public function getTitle(): string
     {

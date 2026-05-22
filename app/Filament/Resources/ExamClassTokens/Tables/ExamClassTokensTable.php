@@ -15,6 +15,11 @@ class ExamClassTokensTable
     {
         return $table
             ->columns([
+                TextColumn::make('order_number')
+                    ->label('No')
+                    ->rowIndex()
+                    ->width('60px'),
+
                 TextColumn::make('exam.title')
                     ->label('Ujian')
                     ->searchable(),

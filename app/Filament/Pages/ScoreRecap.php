@@ -37,7 +37,7 @@ class ScoreRecap extends Page implements HasForms, HasTable
 
     protected static ?int $navigationSort = 7;
 
-    protected string $view = 'filament.pages.score-recap.view-score-recap';
+    protected string $view = 'admin.filament.pages.score-recap.view-score-recap';
 
     public ?int $class_room_id = null;
 
@@ -108,6 +108,11 @@ class ScoreRecap extends Page implements HasForms, HasTable
         return $table
             ->query($this->getTableQuery())
             ->columns([
+                TextColumn::make('order_number')
+                    ->label('No')
+                    ->rowIndex()
+                    ->width('60px'),
+
                 TextColumn::make('nisn')
                     ->label('NISN')
                     ->searchable()

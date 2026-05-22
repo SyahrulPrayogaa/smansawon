@@ -17,6 +17,11 @@ class UsersTable
     {
         return $table
             ->columns([
+                TextColumn::make('order_number')
+                    ->label('No')
+                    ->rowIndex()
+                    ->width('60px'),
+
                 TextColumn::make('name')
                     ->label('Nama')
                     ->searchable()
