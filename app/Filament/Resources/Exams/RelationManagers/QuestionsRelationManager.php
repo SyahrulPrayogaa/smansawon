@@ -19,6 +19,7 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\RichEditor;
 use Filament\Forms\Components\Textarea;
 
 use Filament\Schemas\Schema;
@@ -42,11 +43,24 @@ class QuestionsRelationManager extends RelationManager
     {
         return $schema
             ->components([
-                Textarea::make('question_text')
+                RichEditor::make('question_text')
                     ->label('Teks Soal')
                     ->required()
-                    ->rows(5)
                     ->helperText('Untuk notasi matematika, gunakan LaTeX. Contoh: \\(x^2 + 2x + 1\\)')
+                    ->formatStateUsing(function ($state) {
+                        if (blank($state)) {
+                            return null;
+                        }
+                        // Kalau data lama belum HTML, ubah newline menjadi paragraf HTML
+                        if ($state === strip_tags($state)) {
+                            return '<p>' . nl2br(e($state)) . '</p>';
+                        }
+
+                        return $state;
+                    })
+                    ->dehydrateStateUsing(function ($state) {
+                        return $state;
+                    })
                     ->columnSpanFull(),
 
                 FileUpload::make('image_path')

@@ -1,3 +1,14 @@
+<style>
+    .rich-text-content p {
+        margin: 0;
+    }
+
+    .rich-text-content ul,
+    .rich-text-content ol {
+        margin-left: 1.25rem;
+    }
+</style>
+
 <x-layouts.exam :title="$exam['title']">
     <form id="questionForm" method="POST" action="{{ route('student.exam.save-answer', $number) }}"
         class="min-h-screen bg-slate-100" data-remaining="{{ $remainingSeconds }}">
@@ -66,13 +77,13 @@
                         </div>
                     @endif
 
-                    @php
+                    {{-- @php
                         $questionText = trim(strip_tags($question->question_text ?? ''));
-                    @endphp
+                    @endphp --}}
                     <div class="rounded-3xl bg-slate-50 p-5 leading-8 text-slate-800 ring-1 ring-slate-200">
-                        @if (filled($questionText))
-                            <div class="question-math-text">
-                                {!! e($questionText) !!}
+                        @if (filled($question->question_text))
+                            <div class="question-math-text rich-text-content">
+                                {!! $question->question_text !!}
                             </div>
                         @endif
 
