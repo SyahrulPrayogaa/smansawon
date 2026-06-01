@@ -76,24 +76,14 @@
                                 alt="Gambar soal nomor {{ $number }}" class="w-full object-contain">
                         </div>
                     @endif
-
                     {{-- @php
                         $questionText = trim(strip_tags($question->question_text ?? ''));
                     @endphp --}}
-                    <div class="rounded-3xl bg-slate-50 p-5 leading-8 text-slate-800 ring-1 ring-slate-200">
-                        @if (filled($question->question_text))
-                            <div class="question-math-text rich-text-content">
-                                {!! $question->question_text !!}
-                            </div>
-                        @endif
-
-                        @if ($question->image_path)
-                            <div class="mt-5 overflow-hidden rounded-2xl bg-white ring-1 ring-slate-200">
-                                <img src="{{ asset('storage/' . $question->image_path) }}"
-                                    alt="Gambar soal nomor {{ $number }}" class="w-full object-contain">
-                            </div>
-                        @endif
-                    </div>
+                    @if (filled($question->question_text))
+                        <div class="question-math-text rich-text-content">
+                            {!! $question->question_text !!}
+                        </div>
+                    @endif
                 </div>
 
                 <div class="mt-5 space-y-3">
