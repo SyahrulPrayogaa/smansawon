@@ -314,6 +314,7 @@
             }
         }
 
+        // menangani pelanggaran meninggalkan tab atau aplikasi ujian
         document.addEventListener("visibilitychange", function() {
             if (document.hidden && !isSafeNavigation) {
                 recordExamViolation(
@@ -321,6 +322,56 @@
                     "Siswa meninggalkan tab atau aplikasi ujian."
                 );
             }
+        });
+
+        // ------------------------------------------------------------------
+        // TAMBAHAN UNTUK MENDETEKSI SPLIT SCREEN & HILANG FOKUS
+        // ------------------------------------------------------------------
+
+        // 1. Deteksi saat browser kehilangan fokus (Siswa menyentuh aplikasi lain di split screen)
+        window.addEventListener("blur", function() {
+            if (!isSafeNavigation && document.activeElement !== document.body) {
+                recordExamViolation(
+                    "window_blur",
+                    "Browser kehilangan fokus. Indikasi membuka aplikasi lain atau split screen."
+                );
+            }
+        });
+
+        // 2. Deteksi perubahan drastis pada ukuran layar (Saat split screen diaktifkan)
+        let initialWidth = window.innerWidth;
+        let initialHeight = window.innerHeight;
+
+        // Beri sedikit jeda (debounce) agar tidak memanggil fungsi berkali-kali saat proses resize
+        let resizeTimeout;
+        window.addEventListener("resize", function() {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(function() {
+                let currentWidth = window.innerWidth;
+                let currentHeight = window.innerHeight;
+
+                // Hitung persentase penyusutan layar
+                let widthDrop = (initialWidth - currentWidth) / initialWidth;
+                let heightDrop = (initialHeight - currentHeight) / initialHeight;
+
+                // Jika layar menyusut lebih dari 25% secara tiba-tiba
+                if (widthDrop > 0.25 || heightDrop > 0.25) {
+                    recordExamViolation(
+                        "screen_resized",
+                        "Perubahan ukuran layar drastis terdeteksi. Indikasi penggunaan split screen."
+                    );
+                }
+
+                // Update ukuran initial agar sesuai dengan ukuran baru (mencegah loop)
+                // Hati-hati dengan on-screen keyboard di HP yang juga memicu resize pada height.
+                // Jika tinggi menyusut tapi elemen input/textarea sedang aktif, abaikan.
+                const activeTag = document.activeElement.tagName.toLowerCase();
+                if (activeTag !== 'input' && activeTag !== 'textarea') {
+                    initialHeight = currentHeight;
+                }
+                initialWidth = currentWidth;
+
+            }, 500);
         });
     </script>
 
