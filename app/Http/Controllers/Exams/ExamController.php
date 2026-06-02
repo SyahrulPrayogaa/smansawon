@@ -19,7 +19,7 @@ use App\Models\ExamViolation;
 class ExamController extends Controller
 {
     // maksimal jumlah pelanggaran meninggalkan tab yang diperbolehkan sebelum akun terkunci
-    private int $maxTabLeaveViolations = 3;
+    private int $maxTabLeaveViolations = 1;
 
     public function login(): View
     {
