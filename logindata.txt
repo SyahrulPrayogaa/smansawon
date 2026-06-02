@@ -1,0 +1,1 @@
+nisn=123&token=BINDSIMX
